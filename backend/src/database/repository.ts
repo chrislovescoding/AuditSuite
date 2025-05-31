@@ -179,7 +179,7 @@ export class UserRepository {
     const query = 'SELECT * FROM users ORDER BY created_at DESC';
     const result = await db.query(query);
     
-    return result.rows.map(row => this.mapRowToUser(row));
+    return result.rows.map((row: any) => this.mapRowToUser(row));
   }
 
   /**
@@ -189,7 +189,7 @@ export class UserRepository {
     const query = 'SELECT * FROM users WHERE role = $1 ORDER BY created_at DESC';
     const result = await db.query(query, [role]);
     
-    return result.rows.map(row => this.mapRowToUser(row));
+    return result.rows.map((row: any) => this.mapRowToUser(row));
   }
 
   /**
@@ -199,7 +199,7 @@ export class UserRepository {
     const query = 'SELECT * FROM users WHERE status = $1 ORDER BY created_at DESC';
     const result = await db.query(query, [status]);
     
-    return result.rows.map(row => this.mapRowToUser(row));
+    return result.rows.map((row: any) => this.mapRowToUser(row));
   }
 
   /**
@@ -296,7 +296,7 @@ export class UserRepository {
     };
 
     // Fill in actual counts
-    roleStats.forEach(row => {
+    roleStats.forEach((row: any) => {
       byRole[row.role as UserRole] = parseInt(row.count);
     });
 
@@ -444,7 +444,7 @@ export class AuditLogRepository {
 
     const logsResult = await db.query(logsQuery, values);
     
-    const logs: AuditLog[] = logsResult.rows.map(row => ({
+    const logs: AuditLog[] = logsResult.rows.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
       action: row.action,

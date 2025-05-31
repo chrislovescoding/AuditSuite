@@ -25,7 +25,7 @@ export default function DocumentList() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/documents', {
+      const response = await fetch('/api/documents', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

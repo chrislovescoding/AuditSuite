@@ -53,7 +53,7 @@ export default function Dashboard() {
       if (!token) return
       
       try {
-        const response = await fetch('http://localhost:5000/api/documents', {
+        const response = await fetch('/api/documents', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

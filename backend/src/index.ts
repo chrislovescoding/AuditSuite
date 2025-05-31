@@ -70,8 +70,13 @@ async function initializeDatabase() {
     console.log('🗄️ Initializing database...');
     
     // Test database connection
-    const isConnected = await db.testConnection();
-    if (!isConnected) {
+    try {
+      const client = await db.connect();
+      await client.query('SELECT 1');
+      client.release();
+      console.log('✅ Database connection test successful');
+    } catch (error) {
+      console.error('❌ Database connection test failed:', error);
       throw new Error('Failed to connect to database');
     }
     
@@ -504,7 +509,7 @@ async function startServer() {
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down gracefully...');
   try {
-    await db.close();
+    await db.end();
     console.log('✅ Database connection closed');
     process.exit(0);
   } catch (error) {
@@ -516,7 +521,7 @@ process.on('SIGINT', async () => {
 process.on('SIGTERM', async () => {
   console.log('\n🛑 SIGTERM received, shutting down gracefully...');
   try {
-    await db.close();
+    await db.end();
     console.log('✅ Database connection closed');
     process.exit(0);
   } catch (error) {

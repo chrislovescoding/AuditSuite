@@ -90,7 +90,7 @@ export const pool = new Pool({
 pool.on('connect', (client) => {
   const timestamp = new Date().toISOString();
   console.log(`[AUDIT] Database connection established: ${timestamp}`);
-  
+    
   // Set session parameters for GDPR compliance and security
   client.query(`
     SET application_name = '${databaseConfig.application_name}';
@@ -109,7 +109,7 @@ pool.on('acquire', (client) => {
 
 pool.on('release', (client) => {
   console.log(`[AUDIT] Database connection released: ${new Date().toISOString()}`);
-});
+    });
 
 pool.on('error', (err: PostgreSQLError, client) => {
   const timestamp = new Date().toISOString();
@@ -173,7 +173,7 @@ export async function closeDatabaseConnections(): Promise<void> {
   console.log('[AUDIT] Closing database connections gracefully...');
   await pool.end();
   console.log('[AUDIT] Database connections closed successfully');
-}
+  }
 
 // GDPR-specific database utilities
 export async function executeAuditQuery(
@@ -203,7 +203,7 @@ export async function executeAuditQuery(
     });
     
     return result;
-  } catch (error) {
+    } catch (error) {
     const dbError = error as PostgreSQLError;
     console.error(`[AUDIT] Query failed: ${timestamp}`, {
       userId,
@@ -218,4 +218,7 @@ export async function executeAuditQuery(
   }
 }
 
-export default pool; 
+export default pool;
+
+// Legacy alias for backward compatibility
+export const db = pool; 

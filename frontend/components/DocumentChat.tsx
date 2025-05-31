@@ -62,7 +62,7 @@ export default function DocumentChat({ document, onBack }: DocumentChatProps) {
     setLoading(true)
 
     try {
-      const response = await fetch(`http://localhost:5000/api/documents/${document.id}/chat`, {
+      const response = await fetch(`/api/documents/${document.id}/chat`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

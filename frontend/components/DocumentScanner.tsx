@@ -146,7 +146,7 @@ const DocumentScanner: React.FC = () => {
       formData.append('file', selectedFile);
       formData.append('searchTerm', searchTerm.trim());
 
-      const response = await fetch('http://localhost:5000/api/documents/scan', {
+      const response = await fetch('/api/documents/scan', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

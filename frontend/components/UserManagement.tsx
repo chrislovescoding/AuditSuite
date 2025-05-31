@@ -46,7 +46,7 @@ const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/users', {
+      const response = await fetch('/api/auth/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ const UserManagement: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/stats', {
+      const response = await fetch('/api/auth/stats', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ const UserManagement: React.FC = () => {
 
   const handleStatusUpdate = async (userId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/users/${userId}/status`, {
+      const response = await fetch(`/api/auth/users/${userId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

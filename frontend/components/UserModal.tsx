@@ -110,8 +110,8 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
     try {
       const url = user 
-        ? `http://localhost:5000/api/auth/users/${user.id}`
-        : 'http://localhost:5000/api/auth/register';
+        ? `/api/auth/users/${user.id}`
+        : '/api/auth/register';
       
       const method = user ? 'PUT' : 'POST';
       

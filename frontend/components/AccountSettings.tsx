@@ -123,7 +123,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
     setSuccess(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch('/api/auth/me', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -156,7 +156,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
     setSuccess(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
