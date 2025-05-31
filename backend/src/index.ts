@@ -8,17 +8,104 @@ import fs from 'fs';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuidv4 } from 'uuid';
 
+// Import database and migrations
+import { db } from './database/config';
+import { MigrationRunner } from './database/migrations';
+import { UserService } from './services/userService';
+
+// Import authentication middleware and routes
+import { authenticateToken, requireDocumentUpload } from './middleware/auth';
+import authRoutes from './routes/auth';
+
 // Load environment variables from root .env file
-config({ path: path.join(__dirname, '../../.env') });
+const envPath = path.join(__dirname, '../../.env');
+
+// Handle encoding issues with .env file
+try {
+  // First try UTF-8
+  let envContent = fs.readFileSync(envPath, 'utf8');
+  
+  // Check if it's UTF-16 encoded (lots of null bytes)
+  if (envContent.includes('\u0000')) {
+    envContent = fs.readFileSync(envPath, 'utf16le');
+  }
+  
+  // Remove BOM if present
+  if (envContent.charCodeAt(0) === 0xFEFF) {
+    envContent = envContent.slice(1);
+  }
+  
+  // Parse environment variables manually
+  const lines = envContent.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine && !trimmedLine.startsWith('#') && trimmedLine.includes('=')) {
+      const [key, ...valueParts] = trimmedLine.split('=');
+      const value = valueParts.join('=').trim();
+      process.env[key.trim()] = value;
+    }
+  }
+} catch (error) {
+  console.error('❌ Error reading .env file:', error);
+}
+
+// Don't call config() as it might override our manual settings
+// config({ path: envPath });
+
+// Debug: Show all environment variables that start with GEMINI
+console.log('🔍 All GEMINI env vars:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
+console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔍 PORT:', process.env.PORT);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+console.log('🔑 Gemini API Key loaded successfully');
+
+// Initialize database
+async function initializeDatabase() {
+  try {
+    console.log('🗄️ Initializing database...');
+    
+    // Test database connection
+    const isConnected = await db.testConnection();
+    if (!isConnected) {
+      throw new Error('Failed to connect to database');
+    }
+    
+    // Run migrations
+    await MigrationRunner.runMigrations();
+    
+    // Initialize default admin user
+    await UserService.initializeDefaultAdmin();
+    
+    console.log('✅ Database initialization complete');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    process.exit(1);
+  }
+}
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'self'"],
+      frameAncestors: ["'self'", "http://localhost:3000", "https://localhost:3000"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
@@ -74,8 +161,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Upload document
-app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
+// Authentication routes
+app.use('/api/auth', authRoutes);
+
+// Protected document routes
+// Upload document - requires authentication and upload permission
+app.post('/api/documents/upload', 
+  authenticateToken,
+  requireDocumentUpload,
+  upload.single('document'), 
+  async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -105,8 +200,8 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
   }
 });
 
-// Get all documents
-app.get('/api/documents', (req, res) => {
+// Get all documents - requires authentication
+app.get('/api/documents', authenticateToken, (req, res) => {
   const documentList = Array.from(documents.values()).map(doc => ({
     id: doc.id,
     originalName: doc.originalName,
@@ -117,8 +212,8 @@ app.get('/api/documents', (req, res) => {
   res.json(documentList);
 });
 
-// Chat with document
-app.post('/api/documents/:id/chat', async (req, res) => {
+// Chat with document - requires authentication
+app.post('/api/documents/:id/chat', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { question } = req.body;
@@ -136,7 +231,7 @@ app.post('/api/documents/:id/chat', async (req, res) => {
     const fileBuffer = fs.readFileSync(document.filepath);
     
     // Use Gemini to analyze the document
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const result = await model.generateContent([
       {
@@ -166,8 +261,8 @@ app.post('/api/documents/:id/chat', async (req, res) => {
   }
 });
 
-// Get document details
-app.get('/api/documents/:id', (req, res) => {
+// Get document details - requires authentication
+app.get('/api/documents/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const document = documents.get(id);
   
@@ -183,6 +278,196 @@ app.get('/api/documents/:id', (req, res) => {
   });
 });
 
+// Document scanning endpoint - requires authentication and upload permission
+app.post('/api/documents/scan', 
+  authenticateToken,
+  requireDocumentUpload,
+  upload.single('file'), 
+  async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No PDF file uploaded' });
+    }
+
+    const { searchTerm } = req.body;
+    if (!searchTerm || !searchTerm.trim()) {
+      return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    // Store document temporarily for this scan
+    const documentId = path.basename(req.file.filename, path.extname(req.file.filename));
+    const document: Document = {
+      id: documentId,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      filepath: req.file.path,
+      uploadDate: new Date(),
+      size: req.file.size
+    };
+
+    // Read the PDF file
+    const fileBuffer = fs.readFileSync(document.filepath);
+    
+    // Use Gemini to scan the document for the specific topic
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = `Please analyze this PDF document and find all text snippets that relate to or mention "${searchTerm}".
+
+For each relevant passage you find:
+1. Extract the exact text that mentions or relates to "${searchTerm}"
+2. Indicate which page it appears on (1-based numbering)
+3. Rate the relevance/confidence on a scale of 0.0 to 1.0
+4. If possible, provide approximate position information (you can estimate based on typical PDF layout)
+
+Please return your response in this exact JSON format:
+{
+  "searchTerm": "${searchTerm}",
+  "totalMatches": <number of matches found>,
+  "results": [
+    {
+      "text": "<exact text passage that mentions the topic>",
+      "page": <page number>,
+      "confidence": <relevance score from 0.0 to 1.0>,
+      "position": {
+        "x": <estimated x coordinate (0-600 typical range)>,
+        "y": <estimated y coordinate (0-800 typical range)>,
+        "width": <estimated text width (50-400 typical range)>,
+        "height": <estimated text height (10-20 typical range)>
+      }
+    }
+  ]
+}
+
+Context: This is a document from a UK local government audit. Focus on finding passages that directly reference or are highly relevant to "${searchTerm}". Include surrounding context to make the snippets meaningful.
+
+For position estimates:
+- x: horizontal position from left margin (0 = left edge, 600 = right edge for typical A4)
+- y: vertical position from top (0 = top, 800 = bottom for typical A4)
+- width: approximate width of the text snippet
+- height: approximate height of the text (usually 12-16 for normal text)
+
+Return only the JSON response, no additional text.`;
+    
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: fileBuffer.toString('base64'),
+          mimeType: 'application/pdf'
+        }
+      },
+      prompt
+    ]);
+
+    const response = await result.response;
+    let text = response.text();
+    
+    // Clean up the response to extract JSON
+    text = text.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+    
+    let scanResults;
+    try {
+      scanResults = JSON.parse(text);
+      
+      // Ensure all results have position data, add defaults if missing
+      if (scanResults.results) {
+        scanResults.results = scanResults.results.map((result: any) => ({
+          ...result,
+          position: result.position || {
+            x: 50, // Default left margin
+            y: 100, // Default top position
+            width: 400, // Default width
+            height: 14 // Default text height
+          }
+        }));
+      }
+      
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response:', text);
+      // Fallback response structure
+      scanResults = {
+        searchTerm: searchTerm.trim(),
+        totalMatches: 0,
+        results: []
+      };
+    }
+
+    // Create a public URL for the document (for preview)
+    const documentUrl = `/api/documents/${documentId}/download`;
+
+    // Temporarily store document for download access
+    documents.set(documentId, document);
+
+    // Clean up the file after a delay (optional - for demo purposes)
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(document.filepath);
+        documents.delete(documentId);
+      } catch (err) {
+        console.warn('Failed to cleanup temporary file:', err);
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+
+    res.json({
+      ...scanResults,
+      documentUrl: `http://localhost:5000${documentUrl}`,
+      fileName: document.originalName
+    });
+
+  } catch (error) {
+    console.error('Document scan error:', error);
+    res.status(500).json({ error: 'Failed to scan document' });
+  }
+});
+
+// Download document endpoint - for accessing scanned documents
+app.get('/api/documents/:id/download', (req, res) => {
+  const { id } = req.params;
+  const document = documents.get(id);
+  
+  if (!document) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+
+  if (!fs.existsSync(document.filepath)) {
+    return res.status(404).json({ error: 'Document file not found' });
+  }
+
+  // Set headers to allow iframe embedding and proper PDF display
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${document.originalName}"`);
+  
+  // Remove CSP restrictions for PDF iframe embedding
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Content-Security-Policy', 'frame-ancestors \'self\' http://localhost:3000 https://localhost:3000');
+  
+  // Enable CORS for cross-origin iframe access
+  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  const fileStream = fs.createReadStream(document.filepath);
+  fileStream.pipe(res);
+});
+
+// Alternative authenticated download endpoint for permanent documents
+app.get('/api/documents/:id/download-secure', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const document = documents.get(id);
+  
+  if (!document) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+
+  if (!fs.existsSync(document.filepath)) {
+    return res.status(404).json({ error: 'Document file not found' });
+  }
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
+  
+  const fileStream = fs.createReadStream(document.filepath);
+  fileStream.pipe(res);
+});
+
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error instanceof multer.MulterError) {
@@ -195,7 +480,50 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 AuditSuite backend running on port ${PORT}`);
-  console.log(`📁 Uploads directory: ${uploadsDir}`);
-}); 
+// Start server with database initialization
+async function startServer() {
+  try {
+    // Initialize database first
+    await initializeDatabase();
+    
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`🚀 AuditSuite backend running on port ${PORT}`);
+      console.log(`📁 Uploads directory: ${uploadsDir}`);
+      console.log(`🗄️ Database: PostgreSQL connected`);
+      console.log(`🔐 Authentication: JWT enabled`);
+      console.log(`📊 Audit logging: Enabled`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Graceful shutdown handling
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down gracefully...');
+  try {
+    await db.close();
+    console.log('✅ Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 SIGTERM received, shutting down gracefully...');
+  try {
+    await db.close();
+    console.log('✅ Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
+// Start the application
+startServer(); 

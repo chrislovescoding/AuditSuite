@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { useAuth } from './AuthContext'
 
 interface UploadState {
   uploading: boolean
@@ -11,6 +12,7 @@ interface UploadState {
 }
 
 export default function DocumentUpload() {
+  const { token, permissions } = useAuth()
   const [uploadState, setUploadState] = useState<UploadState>({
     uploading: false,
     progress: 0,
@@ -62,8 +64,11 @@ export default function DocumentUpload() {
       const formData = new FormData()
       formData.append('document', file)
 
-      const response = await fetch('/api/documents/upload', {
+      const response = await fetch('http://localhost:5000/api/documents/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       })
 
@@ -91,6 +96,19 @@ export default function DocumentUpload() {
         error: error instanceof Error ? error.message : 'Upload failed'
       })
     }
+  }
+
+  // Check if user has upload permission
+  if (!permissions?.canUploadDocuments) {
+    return (
+      <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-yellow-800">Upload Restricted</p>
+          <p className="text-sm text-yellow-700">You don't have permission to upload documents.</p>
+        </div>
+      </div>
+    )
   }
 
   return (

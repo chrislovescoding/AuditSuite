@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FileText, MessageSquare, Calendar, HardDrive } from 'lucide-react'
 import DocumentChat from './DocumentChat'
+import { useAuth } from './AuthContext'
 
 interface Document {
   id: string
@@ -12,13 +13,24 @@ interface Document {
 }
 
 export default function DocumentList() {
+  const { token } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchDocuments = async () => {
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
     try {
-      const response = await fetch('/api/documents')
+      const response = await fetch('http://localhost:5000/api/documents', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
       if (response.ok) {
         const docs = await response.json()
         setDocuments(docs)
@@ -40,7 +52,7 @@ export default function DocumentList() {
 
     window.addEventListener('documentUploaded', handleDocumentUpload)
     return () => window.removeEventListener('documentUploaded', handleDocumentUpload)
-  }, [])
+  }, [token])
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
@@ -85,55 +97,53 @@ export default function DocumentList() {
   }
 
   return (
-    <div className="space-y-4">
+    <>
       {/* Document List */}
-      {!selectedDoc && (
-        <div className="space-y-3">
-          {documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1">
-                  <FileText className="h-5 w-5 text-red-600 mt-1 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {doc.originalName}
-                    </h3>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <HardDrive className="h-3 w-3" />
-                        {formatFileSize(doc.size)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(doc.uploadDate)}
-                      </div>
+      <div className="space-y-3">
+        {documents.map((doc) => (
+          <div
+            key={doc.id}
+            className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3 flex-1">
+                <FileText className="h-5 w-5 text-red-600 mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 truncate">
+                    {doc.originalName}
+                  </h3>
+                  <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <HardDrive className="h-3 w-3" />
+                      {formatFileSize(doc.size)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatDate(doc.uploadDate)}
                     </div>
                   </div>
                 </div>
-                
-                <button
-                  onClick={() => setSelectedDoc(doc)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  Chat
-                </button>
               </div>
+              
+              <button
+                onClick={() => setSelectedDoc(doc)}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Start Chat
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
-      {/* Chat Interface */}
+      {/* Full-screen Chat Modal */}
       {selectedDoc && (
         <DocumentChat
           document={selectedDoc}
           onBack={() => setSelectedDoc(null)}
         />
       )}
-    </div>
+    </>
   )
 } 
