@@ -3,7 +3,7 @@
 import React from 'react';
 import { Users, UserCheck, Clock, AlertTriangle, BarChart3 } from 'lucide-react';
 
-interface UserStats {
+interface UserStatsData {
   total: number;
   active: number;
   pending: number;
@@ -14,7 +14,7 @@ interface UserStats {
 }
 
 interface UserStatsProps {
-  stats: UserStats;
+  stats: UserStatsData;
 }
 
 const UserStats: React.FC<UserStatsProps> = ({ stats }) => {

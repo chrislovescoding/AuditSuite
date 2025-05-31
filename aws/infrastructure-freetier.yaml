@@ -1,0 +1,203 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Free-Tier Optimized AuditSuite Database for Vercel Frontend'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues: [development, production]
+    Description: 'Deployment environment'
+  
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: 'Database password (min 8 chars)'
+
+Resources:
+  # VPC Configuration - Simplified
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-vpc'
+        - Key: Purpose
+          Value: 'AuditSuite-FreeTier'
+
+  # Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-igw'
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Public Subnets for Database (Free tier - public for simplicity)
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: 'Public Subnet 1'
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: 'Public Subnet 2'
+
+  # Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: 'Public Route Table'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  # Database Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: 'Subnet group for AuditSuite PostgreSQL'
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: 'AuditSuite DB Subnet Group'
+
+  # Security Group for Database (Allow Vercel IPs)
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Security group for PostgreSQL - allows Vercel access'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0  # Note: For production, restrict to Vercel IPs
+          Description: 'PostgreSQL access for Vercel backend'
+      Tags:
+        - Key: Name
+          Value: 'AuditSuite-DB-SG'
+
+  # RDS PostgreSQL Instance - FREE TIER OPTIMIZED
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-postgres'
+      DBInstanceClass: db.t3.micro  # FREE TIER ELIGIBLE
+      Engine: postgres
+      EngineVersion: '15.13'
+      AllocatedStorage: 20  # FREE TIER: 20GB
+      StorageType: gp2  # FREE TIER
+      StorageEncrypted: false  # FREE TIER doesn't include encryption
+      
+      # Database Configuration
+      DBName: audit_suite
+      MasterUsername: postgres
+      MasterUserPassword: !Ref DBPassword
+      
+      # Basic Backup (Free tier friendly)
+      BackupRetentionPeriod: 7  # FREE TIER: Up to 7 days
+      DeleteAutomatedBackups: true
+      DeletionProtection: false  # For development
+      
+      # Security Configuration
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: true  # Required for Vercel access
+      
+      # FREE TIER: No enhanced monitoring
+      MonitoringInterval: 0
+      
+      # GDPR Compliance Tags
+      Tags:
+        - Key: Name
+          Value: 'AuditSuite-FreeTier-DB'
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Development-Database'
+
+  # S3 Bucket for Document Storage (Free tier friendly)
+  DocumentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: 'AuditSuite-Documents-FreeTier'
+
+Outputs:
+  DatabaseEndpoint:
+    Description: 'PostgreSQL Database Endpoint for Vercel'
+    Value: !GetAtt DatabaseInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-db-endpoint'
+  
+  DatabasePort:
+    Description: 'Database Port'
+    Value: !GetAtt DatabaseInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-db-port'
+  
+  DocumentsBucketName:
+    Description: 'S3 Bucket for Documents'
+    Value: !Ref DocumentsBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-documents-bucket'
+  
+  DatabaseConnectionString:
+    Description: 'Complete database connection string for Vercel'
+    Value: !Sub 'postgresql://postgres:${DBPassword}@${DatabaseInstance.Endpoint.Address}:${DatabaseInstance.Endpoint.Port}/audit_suite?sslmode=require'
+    Export:
+      Name: !Sub '${AWS::StackName}-connection-string' 

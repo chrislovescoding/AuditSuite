@@ -22,7 +22,7 @@ export interface User {
   createdBy?: string;
 }
 
-export interface UserStats {
+export interface UserStatsData {
   total: number;
   active: number;
   pending: number;
@@ -35,7 +35,7 @@ export interface UserStats {
 const UserManagement: React.FC = () => {
   const { token, permissions, user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState<UserStats | null>(null);
+  const [stats, setStats] = useState<UserStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');

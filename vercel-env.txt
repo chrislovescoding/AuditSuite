@@ -1,0 +1,56 @@
+# 🚀 AuditSuite Environment Variables for Vercel
+# Copy these to your Vercel project: Settings → Environment Variables
+
+# ==========================================
+# 🗄️ DATABASE CONFIGURATION (AWS RDS)
+# ==========================================
+DATABASE_URL=postgresql://postgres:aASX11f3oEFBIovvaHK8Yn2uS@auditsuite-freetier-v2-postgres.clyksio88r13.eu-west-2.rds.amazonaws.com:5432/audit_suite?sslmode=require
+DB_HOST=auditsuite-freetier-v2-postgres.clyksio88r13.eu-west-2.rds.amazonaws.com
+DB_PORT=5432
+DB_NAME=audit_suite
+DB_USER=postgres
+DB_PASSWORD=aASX11f3oEFBIovvaHK8Yn2uS
+DB_SSL=true
+
+# ==========================================
+# ☁️ AWS CONFIGURATION
+# ==========================================
+AWS_REGION=eu-west-2
+AWS_S3_BUCKET=auditsuite-freetier-v2-documents-653853167508
+AWS_ACCESS_KEY_ID=[YOUR_AWS_ACCESS_KEY_ID]
+AWS_SECRET_ACCESS_KEY=[YOUR_AWS_SECRET_ACCESS_KEY]
+
+# ==========================================
+# 🔐 APPLICATION SECURITY
+# ==========================================
+NODE_ENV=production
+NEXTAUTH_SECRET=9K7mP2nX8vR4tY6wE1qA5sD3fG8hJ0kL9zX2cV5bN7mQ4rT6yU1iO3pA8sD2fG5h
+NEXTAUTH_URL=https://auditsuite.uk
+
+# ==========================================
+# 🤖 AI CONFIGURATION (Google Gemini)
+# ==========================================
+GOOGLE_GEMINI_API_KEY=[YOUR_GEMINI_API_KEY_HERE]
+GEMINI_MODEL=gemini-2.0-flash
+
+# ==========================================
+# 📧 EMAIL CONFIGURATION (Optional)
+# ==========================================
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=[YOUR_EMAIL]
+# SMTP_PASS=[YOUR_APP_PASSWORD]
+
+# ==========================================
+# 🏛️ UK COUNCIL SPECIFIC
+# ==========================================
+AUDIT_RETENTION_YEARS=7
+DATA_LOCATION=UK
+GDPR_COMPLIANCE=true
+COUNCIL_MODE=true
+
+# ==========================================
+# 📊 MONITORING & LOGGING
+# ==========================================
+LOG_LEVEL=info
+ENABLE_TELEMETRY=true 
