@@ -64,32 +64,50 @@ const PORT = process.env.PORT || 5000;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 console.log('🔑 Gemini API Key loaded successfully');
 
-// Initialize database
-async function initializeDatabase() {
+// Lazy database initialization for serverless
+let databaseInitialized = false;
+
+async function ensureDatabaseInitialized() {
+  if (databaseInitialized) {
+    return;
+  }
+
   try {
-    console.log('🗄️ Initializing database...');
+    console.log('🗄️ Initializing database lazily...');
     
     // Test database connection
-    try {
-      const client = await db.connect();
-      await client.query('SELECT 1');
-      client.release();
-      console.log('✅ Database connection test successful');
-    } catch (error) {
-      console.error('❌ Database connection test failed:', error);
-      throw new Error('Failed to connect to database');
+    const client = await db.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log('✅ Database connection test successful');
+    
+    // Only run migrations if needed - check if tables exist first
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.log('📋 Running database migrations...');
+      await MigrationRunner.runMigrations();
+      await UserService.initializeDefaultAdmin();
     }
     
-    // Run migrations
-    await MigrationRunner.runMigrations();
-    
-    // Initialize default admin user
-    await UserService.initializeDefaultAdmin();
-    
+    databaseInitialized = true;
     console.log('✅ Database initialization complete');
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
-    process.exit(1);
+    throw error;
+  }
+}
+
+async function checkTablesExist(): Promise<boolean> {
+  try {
+    const result = await db.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'users'
+    `);
+    return result.rows.length > 0;
+  } catch (error) {
+    console.error('Error checking tables:', error);
+    return false;
   }
 }
 
@@ -116,6 +134,22 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Add middleware to ensure database is initialized before processing requests
+app.use(async (req, res, next) => {
+  // Skip database initialization for health checks
+  if (req.path === '/api/health') {
+    return next();
+  }
+  
+  try {
+    await ensureDatabaseInitialized();
+    next();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -485,24 +519,18 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server with database initialization
-async function startServer() {
-  try {
-    // Initialize database first
-    await initializeDatabase();
-    
-    // Start the server
-    app.listen(PORT, () => {
-      console.log(`🚀 AuditSuite backend running on port ${PORT}`);
-      console.log(`📁 Uploads directory: ${uploadsDir}`);
-      console.log(`🗄️ Database: PostgreSQL connected`);
-      console.log(`🔐 Authentication: JWT enabled`);
-      console.log(`📊 Audit logging: Enabled`);
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
+// For Vercel serverless deployment
+export default app;
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 AuditSuite backend running on port ${PORT}`);
+    console.log(`📁 Uploads directory: ${uploadsDir}`);
+    console.log(`🗄️ Database: PostgreSQL connected`);
+    console.log(`🔐 Authentication: JWT enabled`);
+    console.log(`📊 Audit logging: Enabled`);
+  });
 }
 
 // Graceful shutdown handling
@@ -528,7 +556,4 @@ process.on('SIGTERM', async () => {
     console.error('❌ Error during shutdown:', error);
     process.exit(1);
   }
-});
-
-// Start the application
-startServer(); 
+}); 
