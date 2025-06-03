@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import multer from 'multer';
 import { config } from 'dotenv';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,82 +17,61 @@ import { UserService } from './services/userService';
 import { authenticateToken, requireDocumentUpload } from './middleware/auth';
 import authRoutes from './routes/auth';
 
-// Only try to load .env file in non-production environments
+// Properly configure environment variables
 if (process.env.NODE_ENV !== 'production') {
-  const envPath = path.join(__dirname, '../../.env');
-  
-  try {
-    // Handle encoding issues with .env file
-    let envContent = fs.readFileSync(envPath, 'utf8');
-    
-    // Check if it's UTF-16 encoded (lots of null bytes)
-    if (envContent.includes('\u0000')) {
-      envContent = fs.readFileSync(envPath, 'utf16le');
-    }
-    
-    // Remove BOM if present
-    if (envContent.charCodeAt(0) === 0xFEFF) {
-      envContent = envContent.slice(1);
-    }
-    
-    // Parse environment variables manually
-    const lines = envContent.split(/\r?\n/);
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (trimmedLine && !trimmedLine.startsWith('#') && trimmedLine.includes('=')) {
-        const [key, ...valueParts] = trimmedLine.split('=');
-        const value = valueParts.join('=').trim();
-        process.env[key.trim()] = value;
-      }
-    }
-  } catch (error) {
-    console.log('ℹ️ No .env file found, using environment variables from deployment');
-  }
+  config({ path: path.join(__dirname, '../../.env') });
 }
 
-// Debug: Show environment info
-console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
-console.log('🔍 PORT:', process.env.PORT);
-console.log('🔍 Environment variables loaded');
+// Environment validation
+const requiredEnvVars = ['GEMINI_API_KEY', 'DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars);
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const IS_SERVERLESS = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-console.log('🔑 Gemini API Key loaded successfully');
 
-// Lazy database initialization for serverless
-let databaseInitialized = false;
+// Database initialization promise (singleton pattern)
+let dbInitPromise: Promise<void> | null = null;
 
-async function ensureDatabaseInitialized() {
-  if (databaseInitialized) {
-    return;
+async function initializeDatabase(): Promise<void> {
+  if (dbInitPromise) {
+    return dbInitPromise;
   }
 
-  try {
-    console.log('🗄️ Initializing database lazily...');
-    
-    // Test database connection
-    const client = await db.connect();
-    await client.query('SELECT 1');
-    client.release();
-    console.log('✅ Database connection test successful');
-    
-    // Only run migrations if needed - check if tables exist first
-    const tablesExist = await checkTablesExist();
-    if (!tablesExist) {
-      console.log('📋 Running database migrations...');
-      await MigrationRunner.runMigrations();
-      await UserService.initializeDefaultAdmin();
+  dbInitPromise = (async () => {
+    try {
+      console.log('🗄️ Initializing database...');
+      
+      // Test database connection
+      const client = await db.connect();
+      await client.query('SELECT 1');
+      client.release();
+      
+      // Check if migrations are needed
+      const tablesExist = await checkTablesExist();
+      if (!tablesExist) {
+        console.log('📋 Running database migrations...');
+        await MigrationRunner.runMigrations();
+        await UserService.initializeDefaultAdmin();
+      }
+      
+      console.log('✅ Database initialization complete');
+    } catch (error) {
+      console.error('❌ Database initialization failed:', error);
+      dbInitPromise = null; // Reset promise to allow retry
+      throw error;
     }
-    
-    databaseInitialized = true;
-    console.log('✅ Database initialization complete');
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error);
-    throw error;
-  }
+  })();
+
+  return dbInitPromise;
 }
 
 async function checkTablesExist(): Promise<boolean> {
@@ -127,119 +106,118 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false,
 }));
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json());
 
-// Add middleware to ensure database is initialized before processing requests
+app.use(express.json({ limit: '10mb' })); // Reasonable JSON limit
+
+// Database initialization middleware - only for non-health endpoints
 app.use(async (req, res, next) => {
-  // Skip database initialization for health checks
   if (req.path === '/api/health') {
     return next();
   }
   
   try {
-    await ensureDatabaseInitialized();
+    await initializeDatabase();
     next();
   } catch (error) {
     console.error('Database initialization error:', error);
-    res.status(500).json({ error: 'Database connection failed' });
+    res.status(503).json({ 
+      error: 'Service temporarily unavailable',
+      message: 'Database connection failed' 
+    });
   }
 });
 
-// Handle uploads directory creation with proper error handling for serverless
-const uploadsDir = path.join(__dirname, '../uploads');
-let uploadsDirectoryReady = false;
-
-function ensureUploadsDirectory() {
-  if (uploadsDirectoryReady) return true;
-  
-  try {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    uploadsDirectoryReady = true;
-    return true;
-  } catch (error) {
-    console.warn('⚠️ Cannot create uploads directory in serverless environment, using temp storage');
-    return false;
+// File upload configuration
+const configureMulter = () => {
+  // Always use memory storage for serverless environments
+  if (IS_SERVERLESS) {
+    return multer({
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 25 * 1024 * 1024, // 25MB limit for serverless
+        files: 1,
+      },
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+          cb(null, true);
+        } else {
+          cb(new Error('Only PDF files are allowed'));
+        }
+      }
+    });
   }
-}
 
-// Configure multer for file uploads with fallback for serverless
-const getMulterConfig = () => {
-  const canUseFileSystem = ensureUploadsDirectory();
+  // For local development, use disk storage
+  const uploadsDir = path.join(__dirname, '../uploads');
   
-  if (canUseFileSystem) {
-    return multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, uploadsDir);
+  return multer({
+    storage: multer.diskStorage({
+      destination: async (req, file, cb) => {
+        try {
+          await fs.mkdir(uploadsDir, { recursive: true });
+          cb(null, uploadsDir);
+        } catch (error) {
+          cb(error as Error, '');
+        }
       },
       filename: (req, file, cb) => {
         const uniqueId = uuidv4();
         const extension = path.extname(file.originalname);
         cb(null, `${uniqueId}${extension}`);
       }
-    });
-  } else {
-    // Use memory storage for serverless
-    return multer.memoryStorage();
-  }
+    }),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB for local development
+      files: 1,
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new Error('Only PDF files are allowed'));
+      }
+    }
+  });
 };
 
-const upload = multer({
-  storage: getMulterConfig(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF files are allowed'));
-    }
-  }
-});
+const upload = configureMulter();
 
-// In-memory storage for documents (replace with PostgreSQL later)
+// Document interface optimized for serverless
 interface Document {
   id: string;
-  filename: string;
   originalName: string;
-  filepath?: string; // Optional for memory storage
-  buffer?: Buffer; // For memory storage in serverless
+  buffer: Buffer;
   uploadDate: Date;
   size: number;
+  mimeType: string;
 }
 
-const documents: Map<string, Document> = new Map();
+// In-memory storage (should be replaced with database/cloud storage in production)
+const documents = new Map<string, Document>();
 
-// Helper function to get file buffer from uploaded file
-function getFileBuffer(file: Express.Multer.File): Buffer {
+// Utility functions
+async function getFileBuffer(file: Express.Multer.File): Promise<Buffer> {
   if (file.buffer) {
-    // Memory storage (serverless)
     return file.buffer;
-  } else if (file.path) {
-    // Disk storage (local)
-    return fs.readFileSync(file.path);
-  } else {
-    throw new Error('File data not available');
   }
+  
+  if (file.path) {
+    return await fs.readFile(file.path);
+  }
+  
+  throw new Error('File data not available');
 }
 
-// Helper function to get file buffer from stored document
-function getDocumentBuffer(document: Document): Buffer {
-  if (document.buffer) {
-    // Memory storage (serverless)
-    return document.buffer;
-  } else if (document.filepath && fs.existsSync(document.filepath)) {
-    // Disk storage (local)
-    return fs.readFileSync(document.filepath);
-  } else {
-    throw new Error('Document file not available');
-  }
+function cleanupDocument(documentId: string, delay: number = 10 * 60 * 1000) {
+  setTimeout(() => {
+    documents.delete(documentId);
+    console.log(`🧹 Cleaned up document: ${documentId}`);
+  }, delay);
 }
 
 // Routes
@@ -263,14 +241,15 @@ app.post('/api/documents/upload',
     }
 
     const documentId = uuidv4();
+    const fileBuffer = await getFileBuffer(req.file);
+    
     const document: Document = {
       id: documentId,
-      filename: req.file.filename || `${documentId}.pdf`,
       originalName: req.file.originalname,
-      filepath: req.file.path, // May be undefined for memory storage
-      buffer: req.file.buffer, // May be undefined for disk storage
+      buffer: fileBuffer,
       uploadDate: new Date(),
-      size: req.file.size
+      size: req.file.size,
+      mimeType: req.file.mimetype
     };
 
     documents.set(documentId, document);
@@ -314,17 +293,14 @@ app.post('/api/documents/:id/chat', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Read the PDF file buffer
-    const fileBuffer = getDocumentBuffer(document);
-    
     // Use Gemini to analyze the document
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const result = await model.generateContent([
       {
         inlineData: {
-          data: fileBuffer.toString('base64'),
-          mimeType: 'application/pdf'
+          data: document.buffer.toString('base64'),
+          mimeType: document.mimeType
         }
       },
       `Please analyze this document and answer the following question: ${question}
@@ -381,21 +357,19 @@ app.post('/api/documents/scan',
       return res.status(400).json({ error: 'Search term is required' });
     }
 
-    // Store document temporarily for this scan
+    // Get file buffer and create temporary document
     const documentId = uuidv4();
+    const fileBuffer = await getFileBuffer(req.file);
+    
     const document: Document = {
       id: documentId,
-      filename: req.file.filename || `${documentId}.pdf`,
       originalName: req.file.originalname,
-      filepath: req.file.path, // May be undefined for memory storage
-      buffer: req.file.buffer, // May be undefined for disk storage
+      buffer: fileBuffer,
       uploadDate: new Date(),
-      size: req.file.size
+      size: req.file.size,
+      mimeType: req.file.mimetype
     };
 
-    // Read the PDF file buffer
-    const fileBuffer = getFileBuffer(req.file);
-    
     // Use Gemini to scan the document for the specific topic
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
@@ -440,7 +414,7 @@ Return only the JSON response, no additional text.`;
       {
         inlineData: {
           data: fileBuffer.toString('base64'),
-          mimeType: 'application/pdf'
+          mimeType: document.mimeType
         }
       },
       prompt
@@ -485,17 +459,8 @@ Return only the JSON response, no additional text.`;
     // Temporarily store document for download access
     documents.set(documentId, document);
 
-    // Clean up the file after a delay (optional - for demo purposes)
-    setTimeout(() => {
-      try {
-        if (document.filepath && fs.existsSync(document.filepath)) {
-          fs.unlinkSync(document.filepath);
-        }
-        documents.delete(documentId);
-      } catch (err) {
-        console.warn('Failed to cleanup temporary file:', err);
-      }
-    }, 10 * 60 * 1000); // 10 minutes
+    // Clean up the file after a delay
+    cleanupDocument(documentId);
 
     res.json({
       ...scanResults,
@@ -519,10 +484,10 @@ app.get('/api/documents/:id/download', (req, res) => {
   }
 
   try {
-    const fileBuffer = getDocumentBuffer(document);
+    const fileBuffer = document.buffer;
     
     // Set headers to allow iframe embedding and proper PDF display
-    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Type', document.mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${document.originalName}"`);
     
     // Remove CSP restrictions for PDF iframe embedding
@@ -550,9 +515,9 @@ app.get('/api/documents/:id/download-secure', authenticateToken, (req, res) => {
   }
 
   try {
-    const fileBuffer = getDocumentBuffer(document);
+    const fileBuffer = document.buffer;
     
-    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Type', document.mimeType);
     res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
     
     res.send(fileBuffer);
@@ -581,7 +546,7 @@ export default app;
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 AuditSuite backend running on port ${PORT}`);
-    console.log(`📁 Uploads directory: ${uploadsDir}`);
+    console.log(`📁 Uploads directory: ${path.join(__dirname, '../uploads')}`);
     console.log(`🗄️ Database: PostgreSQL connected`);
     console.log(`🔐 Authentication: JWT enabled`);
     console.log(`📊 Audit logging: Enabled`);
