@@ -17,45 +17,43 @@ import { UserService } from './services/userService';
 import { authenticateToken, requireDocumentUpload } from './middleware/auth';
 import authRoutes from './routes/auth';
 
-// Load environment variables from root .env file
-const envPath = path.join(__dirname, '../../.env');
-
-// Handle encoding issues with .env file
-try {
-  // First try UTF-8
-  let envContent = fs.readFileSync(envPath, 'utf8');
+// Only try to load .env file in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.join(__dirname, '../../.env');
   
-  // Check if it's UTF-16 encoded (lots of null bytes)
-  if (envContent.includes('\u0000')) {
-    envContent = fs.readFileSync(envPath, 'utf16le');
-  }
-  
-  // Remove BOM if present
-  if (envContent.charCodeAt(0) === 0xFEFF) {
-    envContent = envContent.slice(1);
-  }
-  
-  // Parse environment variables manually
-  const lines = envContent.split(/\r?\n/);
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (trimmedLine && !trimmedLine.startsWith('#') && trimmedLine.includes('=')) {
-      const [key, ...valueParts] = trimmedLine.split('=');
-      const value = valueParts.join('=').trim();
-      process.env[key.trim()] = value;
+  try {
+    // Handle encoding issues with .env file
+    let envContent = fs.readFileSync(envPath, 'utf8');
+    
+    // Check if it's UTF-16 encoded (lots of null bytes)
+    if (envContent.includes('\u0000')) {
+      envContent = fs.readFileSync(envPath, 'utf16le');
     }
+    
+    // Remove BOM if present
+    if (envContent.charCodeAt(0) === 0xFEFF) {
+      envContent = envContent.slice(1);
+    }
+    
+    // Parse environment variables manually
+    const lines = envContent.split(/\r?\n/);
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine && !trimmedLine.startsWith('#') && trimmedLine.includes('=')) {
+        const [key, ...valueParts] = trimmedLine.split('=');
+        const value = valueParts.join('=').trim();
+        process.env[key.trim()] = value;
+      }
+    }
+  } catch (error) {
+    console.log('ℹ️ No .env file found, using environment variables from deployment');
   }
-} catch (error) {
-  console.error('❌ Error reading .env file:', error);
 }
 
-// Don't call config() as it might override our manual settings
-// config({ path: envPath });
-
-// Debug: Show all environment variables that start with GEMINI
-console.log('🔍 All GEMINI env vars:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
+// Debug: Show environment info
 console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
 console.log('🔍 PORT:', process.env.PORT);
+console.log('🔍 Environment variables loaded');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -151,26 +149,48 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Ensure uploads directory exists
+// Handle uploads directory creation with proper error handling for serverless
 const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+let uploadsDirectoryReady = false;
+
+function ensureUploadsDirectory() {
+  if (uploadsDirectoryReady) return true;
+  
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    uploadsDirectoryReady = true;
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Cannot create uploads directory in serverless environment, using temp storage');
+    return false;
+  }
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueId = uuidv4();
-    const extension = path.extname(file.originalname);
-    cb(null, `${uniqueId}${extension}`);
+// Configure multer for file uploads with fallback for serverless
+const getMulterConfig = () => {
+  const canUseFileSystem = ensureUploadsDirectory();
+  
+  if (canUseFileSystem) {
+    return multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, uploadsDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueId = uuidv4();
+        const extension = path.extname(file.originalname);
+        cb(null, `${uniqueId}${extension}`);
+      }
+    });
+  } else {
+    // Use memory storage for serverless
+    return multer.memoryStorage();
   }
-});
+};
 
 const upload = multer({
-  storage,
+  storage: getMulterConfig(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -188,12 +208,39 @@ interface Document {
   id: string;
   filename: string;
   originalName: string;
-  filepath: string;
+  filepath?: string; // Optional for memory storage
+  buffer?: Buffer; // For memory storage in serverless
   uploadDate: Date;
   size: number;
 }
 
 const documents: Map<string, Document> = new Map();
+
+// Helper function to get file buffer from uploaded file
+function getFileBuffer(file: Express.Multer.File): Buffer {
+  if (file.buffer) {
+    // Memory storage (serverless)
+    return file.buffer;
+  } else if (file.path) {
+    // Disk storage (local)
+    return fs.readFileSync(file.path);
+  } else {
+    throw new Error('File data not available');
+  }
+}
+
+// Helper function to get file buffer from stored document
+function getDocumentBuffer(document: Document): Buffer {
+  if (document.buffer) {
+    // Memory storage (serverless)
+    return document.buffer;
+  } else if (document.filepath && fs.existsSync(document.filepath)) {
+    // Disk storage (local)
+    return fs.readFileSync(document.filepath);
+  } else {
+    throw new Error('Document file not available');
+  }
+}
 
 // Routes
 app.get('/api/health', (req, res) => {
@@ -215,12 +262,13 @@ app.post('/api/documents/upload',
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const documentId = path.basename(req.file.filename, path.extname(req.file.filename));
+    const documentId = uuidv4();
     const document: Document = {
       id: documentId,
-      filename: req.file.filename,
+      filename: req.file.filename || `${documentId}.pdf`,
       originalName: req.file.originalname,
-      filepath: req.file.path,
+      filepath: req.file.path, // May be undefined for memory storage
+      buffer: req.file.buffer, // May be undefined for disk storage
       uploadDate: new Date(),
       size: req.file.size
     };
@@ -266,8 +314,8 @@ app.post('/api/documents/:id/chat', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Read the PDF file
-    const fileBuffer = fs.readFileSync(document.filepath);
+    // Read the PDF file buffer
+    const fileBuffer = getDocumentBuffer(document);
     
     // Use Gemini to analyze the document
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -334,18 +382,19 @@ app.post('/api/documents/scan',
     }
 
     // Store document temporarily for this scan
-    const documentId = path.basename(req.file.filename, path.extname(req.file.filename));
+    const documentId = uuidv4();
     const document: Document = {
       id: documentId,
-      filename: req.file.filename,
+      filename: req.file.filename || `${documentId}.pdf`,
       originalName: req.file.originalname,
-      filepath: req.file.path,
+      filepath: req.file.path, // May be undefined for memory storage
+      buffer: req.file.buffer, // May be undefined for disk storage
       uploadDate: new Date(),
       size: req.file.size
     };
 
-    // Read the PDF file
-    const fileBuffer = fs.readFileSync(document.filepath);
+    // Read the PDF file buffer
+    const fileBuffer = getFileBuffer(req.file);
     
     // Use Gemini to scan the document for the specific topic
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -439,7 +488,9 @@ Return only the JSON response, no additional text.`;
     // Clean up the file after a delay (optional - for demo purposes)
     setTimeout(() => {
       try {
-        fs.unlinkSync(document.filepath);
+        if (document.filepath && fs.existsSync(document.filepath)) {
+          fs.unlinkSync(document.filepath);
+        }
         documents.delete(documentId);
       } catch (err) {
         console.warn('Failed to cleanup temporary file:', err);
@@ -448,7 +499,7 @@ Return only the JSON response, no additional text.`;
 
     res.json({
       ...scanResults,
-      documentUrl: `http://localhost:5000${documentUrl}`,
+      documentUrl: `${process.env.BACKEND_URL || 'http://localhost:5000'}${documentUrl}`,
       fileName: document.originalName
     });
 
@@ -467,24 +518,26 @@ app.get('/api/documents/:id/download', (req, res) => {
     return res.status(404).json({ error: 'Document not found' });
   }
 
-  if (!fs.existsSync(document.filepath)) {
-    return res.status(404).json({ error: 'Document file not found' });
+  try {
+    const fileBuffer = getDocumentBuffer(document);
+    
+    // Set headers to allow iframe embedding and proper PDF display
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${document.originalName}"`);
+    
+    // Remove CSP restrictions for PDF iframe embedding
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Content-Security-Policy', 'frame-ancestors \'self\' http://localhost:3000 https://localhost:3000');
+    
+    // Enable CORS for cross-origin iframe access
+    res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
+    res.send(fileBuffer);
+  } catch (error) {
+    console.error('Error serving document:', error);
+    res.status(404).json({ error: 'Document file not found' });
   }
-
-  // Set headers to allow iframe embedding and proper PDF display
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `inline; filename="${document.originalName}"`);
-  
-  // Remove CSP restrictions for PDF iframe embedding
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Content-Security-Policy', 'frame-ancestors \'self\' http://localhost:3000 https://localhost:3000');
-  
-  // Enable CORS for cross-origin iframe access
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
-  const fileStream = fs.createReadStream(document.filepath);
-  fileStream.pipe(res);
 });
 
 // Alternative authenticated download endpoint for permanent documents
@@ -496,15 +549,17 @@ app.get('/api/documents/:id/download-secure', authenticateToken, (req, res) => {
     return res.status(404).json({ error: 'Document not found' });
   }
 
-  if (!fs.existsSync(document.filepath)) {
-    return res.status(404).json({ error: 'Document file not found' });
+  try {
+    const fileBuffer = getDocumentBuffer(document);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
+    
+    res.send(fileBuffer);
+  } catch (error) {
+    console.error('Error serving document:', error);
+    res.status(404).json({ error: 'Document file not found' });
   }
-
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
-  
-  const fileStream = fs.createReadStream(document.filepath);
-  fileStream.pipe(res);
 });
 
 // Error handling middleware
