@@ -169,25 +169,31 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div 
+        className="bg-[#35373A] rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        style={{ 
+          border: '6px solid rgba(255, 255, 255, 0.2)',
+          fontFamily: 'Times New Roman, serif'
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b border-white/20">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <User className="h-5 w-5 text-blue-600" />
+            <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full border border-white/30">
+              <User className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-light text-white italic">
                 {user ? 'Edit User' : 'Create New User'}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/80">
                 {user ? 'Update user information and role' : 'Add a new user to the system'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 text-white/60 hover:text-white rounded-lg hover:bg-white/10 transition-colors border border-white/20"
           >
             <X className="h-5 w-5" />
           </button>
@@ -195,9 +201,9 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
         {/* Success Message */}
         {success && (
-          <div className="m-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-            <Check className="h-5 w-5 text-green-600" />
-            <p className="text-green-700">
+          <div className="m-6 p-4 bg-green-500/20 border border-green-300/30 rounded-lg flex items-center gap-3 backdrop-blur-sm">
+            <Check className="h-5 w-5 text-green-200" />
+            <p className="text-green-200">
               User {user ? 'updated' : 'created'} successfully!
             </p>
           </div>
@@ -205,9 +211,9 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
         {/* Error Message */}
         {error && (
-          <div className="m-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <p className="text-red-700">{error}</p>
+          <div className="m-6 p-4 bg-red-500/20 border border-red-300/30 rounded-lg flex items-center gap-3 backdrop-blur-sm">
+            <AlertCircle className="h-5 w-5 text-red-200" />
+            <p className="text-red-200">{error}</p>
           </div>
         )}
 
@@ -215,11 +221,11 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Personal Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Personal Information</h3>
+            <h3 className="text-lg font-light text-white italic">Personal Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="firstName" className="block text-sm font-light text-white/90 mb-2">
                   First Name *
                 </label>
                 <input
@@ -228,18 +234,18 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-3 py-2 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50 ${
+                    formErrors.firstName ? 'border-red-300/50 bg-red-500/10' : 'border-white/30'
                   }`}
                   disabled={loading || success}
                 />
                 {formErrors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.firstName}</p>
+                  <p className="mt-1 text-sm text-red-300">{formErrors.firstName}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="lastName" className="block text-sm font-light text-white/90 mb-2">
                   Last Name *
                 </label>
                 <input
@@ -248,13 +254,13 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-3 py-2 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50 ${
+                    formErrors.lastName ? 'border-red-300/50 bg-red-500/10' : 'border-white/30'
                   }`}
                   disabled={loading || success}
                 />
                 {formErrors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.lastName}</p>
+                  <p className="mt-1 text-sm text-red-300">{formErrors.lastName}</p>
                 )}
               </div>
             </div>
@@ -262,34 +268,34 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
+            <h3 className="text-lg font-light text-white italic">Contact Information</h3>
             
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-light text-white/90 mb-2">
                 Email Address *
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                 <input
                   type="email"
                   id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full pl-10 pr-4 py-2 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50 ${
+                    formErrors.email ? 'border-red-300/50 bg-red-500/10' : 'border-white/30'
                   }`}
                   disabled={loading || success}
                 />
               </div>
               {formErrors.email && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                <p className="mt-1 text-sm text-red-300">{formErrors.email}</p>
               )}
             </div>
 
             {!user && (
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-light text-white/90 mb-2">
                   Password *
                 </label>
                 <input
@@ -298,50 +304,50 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-3 py-2 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50 ${
+                    formErrors.password ? 'border-red-300/50 bg-red-500/10' : 'border-white/30'
                   }`}
                   disabled={loading || success}
                   placeholder="Minimum 8 characters"
                 />
                 {formErrors.password && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                  <p className="mt-1 text-sm text-red-300">{formErrors.password}</p>
                 )}
               </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="phoneNumber" className="block text-sm font-light text-white/90 mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                   <input
                     type="tel"
                     id="phoneNumber"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50"
                     disabled={loading || success}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="department" className="block text-sm font-light text-white/90 mb-2">
                   Department
                 </label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                   <input
                     type="text"
                     id="department"
                     name="department"
                     value={formData.department}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50"
                     disabled={loading || success}
                   />
                 </div>
@@ -351,39 +357,39 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
 
           {/* Role Selection */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Role & Permissions</h3>
+            <h3 className="text-lg font-light text-white italic">Role & Permissions</h3>
             
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="role" className="block text-sm font-light text-white/90 mb-2">
                 Role *
               </label>
               <div className="relative">
-                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
                 <select
                   id="role"
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrors.role ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full pl-10 pr-4 py-2 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white ${
+                    formErrors.role ? 'border-red-300/50 bg-red-500/10' : 'border-white/30'
                   }`}
                   disabled={loading || success}
                 >
                   {roles.map(role => (
-                    <option key={role.value} value={role.value}>
+                    <option key={role.value} value={role.value} className="bg-[#35373A] text-white">
                       {role.label}
                     </option>
                   ))}
                 </select>
               </div>
               {formErrors.role && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.role}</p>
+                <p className="mt-1 text-sm text-red-300">{formErrors.role}</p>
               )}
               
               {/* Role Description */}
               {formData.role && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
+                <div className="mt-2 p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <p className="text-sm text-white/80">
                     {roles.find(r => r.value === formData.role)?.description}
                   </p>
                 </div>
@@ -392,11 +398,11 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/20">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-white/80 border border-white/30 rounded-lg hover:bg-white/10 hover:text-white transition-colors backdrop-blur-sm"
               disabled={loading}
             >
               Cancel
@@ -404,7 +410,7 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onUserUpdated }) =
             <button
               type="submit"
               disabled={loading || success}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center gap-2"
+              className="px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors disabled:opacity-50 border border-white/30 flex items-center gap-2"
             >
               {loading ? (
                 <>

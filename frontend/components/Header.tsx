@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from './AuthContext';
-import { Shield, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { User, LogOut, Settings, ChevronDown, Users } from 'lucide-react';
 import AccountSettings from './AccountSettings';
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, permissions } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
 
@@ -30,117 +30,135 @@ const Header: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/20 text-green-200 border-green-300/30';
       case 'pending_approval':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-500/20 text-yellow-200 border-yellow-300/30';
       case 'suspended':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-500/20 text-red-200 border-red-300/30';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white/20 text-white/80 border-white/30';
     }
   };
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4 py-4">
+    <header 
+      className="bg-white/10 backdrop-blur-lg border-b border-white/20 relative z-50"
+      style={{ fontFamily: 'Times New Roman, serif' }}
+    >
+      <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
-          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Shield className="h-8 w-8 text-blue-600" />
+          <Link href="/dashboard" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
+            <img
+              src="/Blackwood_Analytics_Logo.png"
+              alt="Blackwood Analytics"
+              className="h-12 w-auto object-contain"
+            />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">AuditSuite</h1>
-              <p className="text-sm text-gray-500">UK Local Government Audit Platform</p>
+              <h1 className="text-2xl font-bold text-white tracking-wide">BLACKWOOD ANALYTICS</h1>
+              <p className="text-sm text-white/70 italic">Strategic Advisory Portal</p>
             </div>
           </Link>
 
           {/* User Menu */}
           {user && (
-            <div className="relative">
+            <div className="relative z-50">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <User className="h-4 w-4 text-blue-600" />
+                  <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full border border-white/30">
+                    <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-white">
                       {user.firstName} {user.lastName}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-white/70">
                       {getRoleDisplayName(user.role)}
                     </div>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 text-white/60 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
               {/* Dropdown Menu */}
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border py-2 z-50">
-                  {/* User Info */}
-                  <div className="px-4 py-3 border-b">
-                    <div className="font-medium text-gray-900">
-                      {user.firstName} {user.lastName}
+                <>
+                  {/* Click outside to close dropdown */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setDropdownOpen(false)}
+                  />
+                  
+                  <div className="absolute right-0 mt-2 w-80 rounded-lg shadow-2xl border-2 border-white/30 py-3 z-50" style={{ backgroundColor: '#35373A' }}>
+                    {/* User Info */}
+                    <div className="px-6 py-4 border-b border-white/30">
+                      <div className="font-medium text-white text-lg">
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div className="text-sm text-white/80 mb-3">{user.email}</div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${getStatusColor(user.status)}`}>
+                          {user.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                        <span className="text-xs text-white/70">
+                          {getRoleDisplayName(user.role)}
+                        </span>
+                      </div>
+                      {user.department && (
+                        <div className="text-xs text-white/70 mt-2">
+                          Department: {user.department}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-500 mb-2">{user.email}</div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                        {user.status.replace('_', ' ').toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {getRoleDisplayName(user.role)}
-                      </span>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      <button
+                        onClick={handleAccountSettings}
+                        className="w-full text-left px-6 py-3 text-sm text-white/95 hover:bg-white/10 flex items-center gap-3 transition-colors"
+                      >
+                        <Settings className="h-4 w-4" />
+                        Account Settings
+                      </button>
+                      
+                      {permissions?.canManageUsers && (
+                        <Link
+                          href="/user-management"
+                          className="w-full text-left px-6 py-3 text-sm text-white/95 hover:bg-white/10 flex items-center gap-3 transition-colors"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Users className="h-4 w-4" />
+                          User Management
+                        </Link>
+                      )}
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-6 py-3 text-sm text-red-300 hover:bg-red-500/20 flex items-center gap-3 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
                     </div>
-                    {user.department && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Department: {user.department}
+
+                    {/* Last Login */}
+                    {user.lastLoginAt && (
+                      <div className="px-6 py-3 border-t border-white/30">
+                        <div className="text-xs text-white/70">
+                          Last login: {new Date(user.lastLoginAt).toLocaleString()}
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Menu Items */}
-                  <div className="py-1">
-                    <button
-                      onClick={handleAccountSettings}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                    >
-                      <Settings className="h-4 w-4" />
-                      Account Settings
-                    </button>
-                    
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </button>
-                  </div>
-
-                  {/* Last Login */}
-                  {user.lastLoginAt && (
-                    <div className="px-4 py-2 border-t">
-                      <div className="text-xs text-gray-500">
-                        Last login: {new Date(user.lastLoginAt).toLocaleString()}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                </>
               )}
             </div>
           )}
         </div>
       </div>
-
-      {/* Click outside to close dropdown */}
-      {dropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setDropdownOpen(false)}
-        />
-      )}
 
       {/* Account Settings Modal */}
       {showAccountSettings && (

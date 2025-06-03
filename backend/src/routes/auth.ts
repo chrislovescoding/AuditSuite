@@ -345,4 +345,29 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: Request, res: 
   }
 });
 
+/**
+ * DELETE /api/auth/users/:id
+ * Delete user (admin only)
+ */
+router.delete('/users/:id', authenticateToken, requireUserManagement, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user?.userId;
+
+    // Prevent users from deleting themselves
+    if (id === currentUserId) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    await UserService.deleteUser(id);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(400).json({ 
+      error: error instanceof Error ? error.message : 'Failed to delete user' 
+    });
+  }
+});
+
 export default router; 

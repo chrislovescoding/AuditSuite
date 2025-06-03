@@ -15,6 +15,7 @@ import {
   validateEmail 
 } from '../utils/auth';
 import { UserRepository, AuditLogRepository } from '../database/repository';
+import pool from '../database/config';
 
 export class UserService {
   /**
@@ -282,7 +283,7 @@ export class UserService {
   }
 
   /**
-   * Delete user (soft delete)
+   * Delete user (hard delete for GDPR compliance)
    */
   static async deleteUser(userId: string): Promise<void> {
     const user = await UserRepository.findById(userId);
@@ -290,19 +291,46 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    await UserRepository.delete(userId);
+    const client = await pool.connect();
 
-    // Log user deletion
-    await AuditLogRepository.create({
-      action: 'USER_DELETED',
-      resourceType: 'USER',
-      resourceId: userId,
-      details: { 
-        email: user.email, 
-        name: `${user.firstName} ${user.lastName}`,
-        deletionType: 'soft'
-      },
-    });
+    try {
+      await client.query('BEGIN');
+
+      // Log user deletion before actually deleting (this will be preserved in audit logs)
+      await AuditLogRepository.create({
+        action: 'USER_DELETED',
+        resourceType: 'USER',
+        resourceId: userId,
+        details: { 
+          email: user.email, 
+          name: `${user.firstName} ${user.lastName}`,
+          deletionType: 'hard',
+          gdprCompliant: true,
+          reason: 'Admin user deletion request'
+        },
+      });
+
+      // Delete related data in proper order to respect foreign key constraints
+      // 1. Delete audit logs where this user was the subject
+      await client.query('DELETE FROM audit_logs WHERE user_id = $1', [userId]);
+      
+      // 2. Delete documents uploaded by this user
+      await client.query('DELETE FROM documents WHERE uploaded_by = $1', [userId]);
+      
+      // 3. Update any users that were created by this user (set created_by to null)
+      await client.query('UPDATE users SET created_by = NULL WHERE created_by = $1', [userId]);
+      
+      // 4. Finally delete the user record
+      await client.query('DELETE FROM users WHERE id = $1', [userId]);
+
+      await client.query('COMMIT');
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw new Error(`Failed to delete user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      client.release();
+    }
   }
 
   /**

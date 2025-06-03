@@ -22,7 +22,8 @@ import {
   Calendar,
   CheckSquare,
   AlertTriangle,
-  Database
+  Database,
+  ArrowLeft
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -85,10 +86,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
-          <p className="text-gray-600">Loading...</p>
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1533929736458-ca588d08c8be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80&sat=-100')`,
+          fontFamily: 'Times New Roman, serif'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/70"></div>
+        <div className="relative z-10 text-center bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-white mb-4" />
+          <p className="text-white/90 text-lg">Loading your portal...</p>
         </div>
       </div>
     )
@@ -103,99 +111,89 @@ export default function Dashboard() {
       id: 'dashboard' as TabType,
       label: 'Dashboard',
       icon: HomeIcon,
-      description: 'Audit applications and overview',
+      description: 'Strategic advisory applications and overview',
     },
   ]
-
-  // Add user management tab for admins
-  if (permissions?.canManageUsers) {
-    tabs.push({
-      id: 'users' as TabType,
-      label: 'User Management',
-      icon: Users,
-      description: 'Manage users, roles, and permissions',
-    })
-  }
 
   const auditApplications = [
     {
       id: 'document-chat' as AppType,
-      title: 'Document Chat',
-      description: 'Full-screen AI chat interface for in-depth document analysis',
+      title: 'Document Analysis',
+      description: 'AI-powered document analysis with strategic insights and recommendations',
       icon: MessageSquare,
-      color: 'bg-blue-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: true,
       category: 'Analysis'
     },
     {
       id: 'document-scanner' as AppType,
-      title: 'Document Scanner',
-      description: 'Upload PDFs and scan for specific topics with intelligent highlighting',
+      title: 'Topic Scanner',
+      description: 'Intelligent document scanning for specific topics and strategic themes',
       icon: Search,
-      color: 'bg-cyan-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: true,
-      category: 'Analysis'
+      category: 'Research'
     },
     {
       id: 'financial-analysis' as AppType,
       title: 'Financial Analysis',
-      description: 'Automated financial statement review and risk assessment',
+      description: 'Strategic financial review and performance assessment',
       icon: Calculator,
-      color: 'bg-green-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Finance'
     },
     {
       id: 'risk-assessment' as AppType,
       title: 'Risk Assessment',
-      description: 'Identify and assess audit risks with AI assistance',
+      description: 'Comprehensive risk analysis and mitigation strategies',
       icon: Shield,
-      color: 'bg-orange-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Risk'
     },
     {
       id: 'compliance-tracker' as AppType,
-      title: 'Compliance Tracker',
-      description: 'Monitor regulatory compliance and track requirements',
+      title: 'Compliance Review',
+      description: 'Regulatory compliance monitoring and strategic recommendations',
       icon: CheckSquare,
-      color: 'bg-purple-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Compliance'
     },
     {
       id: 'fraud-detection' as AppType,
-      title: 'Fraud Detection',
-      description: 'AI-powered fraud pattern analysis and anomaly detection',
+      title: 'Strategic Intelligence',
+      description: 'Pattern analysis and strategic intelligence for decision-making',
       icon: AlertTriangle,
-      color: 'bg-red-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
-      category: 'Security'
+      category: 'Intelligence'
     },
     {
       id: 'audit-planner' as AppType,
-      title: 'Audit Planner',
-      description: 'Plan and schedule audit activities with timeline management',
+      title: 'Strategic Planner',
+      description: 'Strategic planning and project timeline management',
       icon: Calendar,
-      color: 'bg-indigo-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Planning'
     },
     {
       id: 'invoice-analyzer' as AppType,
-      title: 'Invoice Analyzer',
-      description: 'Automated invoice processing, validation and approval workflows',
+      title: 'Financial Processor',
+      description: 'Automated financial document processing and validation',
       icon: Database,
-      color: 'bg-teal-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Finance'
     },
     {
       id: 'contract-reviewer' as AppType,
-      title: 'Contract Reviewer',
-      description: 'AI contract analysis with risk identification and clause review',
+      title: 'Contract Advisor',
+      description: 'Strategic contract analysis with risk identification and recommendations',
       icon: Search,
-      color: 'bg-pink-500',
+      color: 'bg-white/20 backdrop-blur-sm border-white/30',
       available: false,
       category: 'Legal'
     }
@@ -213,255 +211,194 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.firstName}!
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl">
-            AI-powered audit suite for UK local government. 
-            Access comprehensive tools for document analysis, risk assessment, and compliance monitoring.
-          </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        {tabs.length > 1 && (
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed relative dashboard-container"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1533929736458-ca588d08c8be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80&sat=-100')`,
+        fontFamily: 'Times New Roman, serif'
+      }}
+    >
+      <div className="relative z-10">
+        <Header />
+        
+        <main className="container mx-auto px-6 py-8">
+          {/* Welcome Section */}
           <div className="mb-8">
-            <div className="flex items-center space-x-1 bg-white p-1 rounded-lg border">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-md transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <IconComponent className="h-4 w-4" />
-                    <span className="font-medium">{tab.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-            
-            {/* Active Tab Description */}
-            <div className="mt-2">
-              <p className="text-sm text-gray-600">
-                {tabs.find(tab => tab.id === activeTab)?.description}
-              </p>
+            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8 shadow-2xl">
+              <h2 className="text-4xl font-light text-white italic">
+                Welcome back, {user.firstName}
+              </h2>
             </div>
           </div>
-        )}
 
-        {/* Tab Content */}
-        {activeTab === 'dashboard' && (
-          <>
-            {/* If an app is selected, show its interface */}
-            {selectedApp === 'document-chat' ? (
-              <div className="space-y-6">
-                {/* App Header */}
-                <div className="flex items-center gap-4 mb-6">
+          {/* Dashboard Content */}
+          {/* If an app is selected, show its interface */}
+          {selectedApp === 'document-chat' ? (
+            <div className="space-y-6">
+              {/* App Header */}
+              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                <div className="flex items-center gap-4 mb-4">
                   <button
                     onClick={handleBackToApps}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg border transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg border border-white/20 transition-all duration-300"
                   >
-                    ← Back to Apps
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Applications
                   </button>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Document Chat</h2>
-                    <p className="text-gray-600">AI-powered document analysis and Q&A</p>
-                  </div>
                 </div>
-
-                {/* Document Chat Interface */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Upload Section */}
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <h3 className="text-xl font-semibold mb-4">Upload Document</h3>
-                    <DocumentUpload />
-                  </div>
-
-                  {/* Documents List */}
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <h3 className="text-xl font-semibold mb-4">Your Documents</h3>
-                    <DocumentList />
-                  </div>
+                <div>
+                  <h2 className="text-3xl font-light text-white mb-2 italic">Document Analysis</h2>
+                  <p className="text-white/80">AI-powered strategic document analysis and advisory insights</p>
                 </div>
               </div>
-            ) : selectedApp === 'document-scanner' ? (
-              <div className="space-y-6">
-                {/* App Header */}
-                <div className="flex items-center gap-4 mb-6">
-                  <button
-                    onClick={handleBackToApps}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg border transition-colors"
-                  >
-                    ← Back to Apps
-                  </button>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Document Scanner</h2>
-                    <p className="text-gray-600">Upload PDFs and scan for specific topics with intelligent highlighting</p>
-                  </div>
+
+              {/* Document Chat Interface */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Upload Section */}
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8 shadow-2xl">
+                  <h3 className="text-xl font-semibold text-white mb-6">Upload Document</h3>
+                  <DocumentUpload />
                 </div>
 
-                {/* Document Scanner Interface */}
+                {/* Documents List */}
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8 shadow-2xl">
+                  <h3 className="text-xl font-semibold text-white mb-6">Your Documents</h3>
+                  <DocumentList />
+                </div>
+              </div>
+            </div>
+          ) : selectedApp === 'document-scanner' ? (
+            <div className="space-y-6">
+              {/* App Header */}
+              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <button
+                    onClick={handleBackToApps}
+                    className="flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg border border-white/20 transition-all duration-300"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Applications
+                  </button>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-light text-white mb-2 italic">Topic Scanner</h2>
+                  <p className="text-white/80">Intelligent document scanning for strategic themes and insights</p>
+                </div>
+              </div>
+
+              {/* Document Scanner Interface */}
+              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8 shadow-2xl">
                 <DocumentScanner />
               </div>
-            ) : (
-              <>
-                {/* Dashboard Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Total Documents</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalDocuments}</p>
-                      </div>
+            </div>
+          ) : (
+            <>
+              {/* Dashboard Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <FileText className="h-6 w-6 text-white" />
                     </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">This Month</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.documentsThisMonth}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <MessageSquare className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Active Chats</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.activeChats}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-orange-100 rounded-lg">
-                        <AlertTriangle className="h-5 w-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Issues Found</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.issuesFound}</p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/80">Total Documents</p>
+                      <p className="text-3xl font-light text-white">{stats.totalDocuments}</p>
                     </div>
                   </div>
                 </div>
+                
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/80">This Month</p>
+                      <p className="text-3xl font-light text-white">{stats.documentsThisMonth}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <MessageSquare className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/80">Active Sessions</p>
+                      <p className="text-3xl font-light text-white">{stats.activeChats}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 shadow-2xl">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <AlertTriangle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/80">Insights Generated</p>
+                      <p className="text-3xl font-light text-white">{stats.issuesFound}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                {/* Audit Applications Grid */}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Audit Applications</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {auditApplications.map((app) => {
-                      const IconComponent = app.icon
-                      return (
-                        <div
-                          key={app.id}
-                          onClick={() => handleAppClick(app)}
-                          className={`
-                            relative bg-white rounded-xl border shadow-sm p-6 transition-all duration-200 
-                            ${app.available 
-                              ? 'hover:shadow-md hover:-translate-y-1 cursor-pointer hover:border-gray-300' 
-                              : 'opacity-75 cursor-not-allowed'
-                            }
-                          `}
-                        >
-                          {!app.available && (
-                            <div className="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
-                              Coming Soon
-                            </div>
-                          )}
-                          
-                          <div className="flex items-start gap-4">
-                            <div className={`p-3 ${app.color} rounded-lg flex-shrink-0`}>
-                              <IconComponent className="h-6 w-6 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 mb-1">{app.title}</h4>
-                              <p className="text-sm text-gray-600 mb-2">{app.description}</p>
-                              <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                                {app.category}
-                              </span>
+              {/* Strategic Applications Grid */}
+              <div className="mb-8">
+                <h3 className="text-3xl font-light text-white mb-8 italic">Strategic Advisory Applications</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {auditApplications.map((app) => {
+                    const IconComponent = app.icon
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => handleAppClick(app)}
+                        className={`
+                          relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-8 shadow-2xl transition-all duration-300 
+                          ${app.available 
+                            ? 'hover:bg-white/20 hover:-translate-y-1 cursor-pointer hover:border-white/40' 
+                            : 'opacity-60 cursor-not-allowed'
+                          }
+                        `}
+                        style={{ border: '2px solid rgba(255, 255, 255, 0.2)' }}
+                      >
+                        {!app.available && (
+                          <div className="absolute top-4 right-4 bg-yellow-500/20 text-yellow-200 text-xs font-medium px-3 py-1 rounded-full border border-yellow-300/30 backdrop-blur-sm">
+                            Coming Soon
+                          </div>
+                        )}
+                        
+                        <div className="flex items-start gap-4">
+                          <div className="p-4 bg-white/20 backdrop-blur-sm rounded-lg flex-shrink-0 border border-white/30">
+                            <IconComponent className="h-8 w-8 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-white mb-2 text-lg">{app.title}</h4>
+                            <p className="text-sm text-white/80 mb-3 leading-relaxed">{app.description}</p>
+                            <span className="inline-block px-3 py-1 bg-white/20 text-white/80 text-xs rounded-full border border-white/30">
+                              {app.category}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {app.available && (
+                          <div className="mt-6 pt-6 border-t border-white/20">
+                            <div className="flex items-center text-white text-sm font-medium">
+                              Launch Application
+                              <span className="ml-2">→</span>
                             </div>
                           </div>
-                          
-                          {app.available && (
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                              <div className="flex items-center text-blue-600 text-sm font-medium">
-                                Launch App
-                                <span className="ml-2">→</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-
-                {/* Quick Actions */}
-                <div className="bg-white rounded-lg shadow-sm border p-6">
-                  <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button 
-                      onClick={() => setSelectedApp('document-chat')}
-                      className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 rounded-lg border transition-colors"
-                    >
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">Upload Document</p>
-                        <p className="text-sm text-gray-600">Start analyzing a new document</p>
-                      </div>
-                    </button>
-
-                    <button 
-                      onClick={() => setSelectedApp('document-scanner')}
-                      className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 rounded-lg border transition-colors"
-                    >
-                      <Search className="h-5 w-5 text-cyan-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">Scan Document</p>
-                        <p className="text-sm text-gray-600">Find specific topics in PDFs</p>
-                      </div>
-                    </button>
-                    
-                    <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 rounded-lg border transition-colors opacity-50 cursor-not-allowed">
-                      <PieChart className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">Generate Report</p>
-                        <p className="text-sm text-gray-600">Create audit summary (Coming Soon)</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {activeTab === 'users' && permissions?.canManageUsers && (
-          <UserManagement />
-        )}
-      </main>
+              </div>
+            </>
+          )}
+        </main>
+      </div>
     </div>
   )
 } 

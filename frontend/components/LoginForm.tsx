@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-import { Shield, Eye, EyeOff, LogIn, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 
 interface LoginFormProps {
   onBack?: () => void;
@@ -65,134 +65,139 @@ const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Back Button */}
-        {onBack && (
-          <div className="mb-4">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </button>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Shield className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to AuditSuite</h1>
-          <p className="text-gray-600">Sign in to your account to continue</p>
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center p-4"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1533929736458-ca588d08c8be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80&sat=-100')`,
+        fontFamily: 'Times New Roman, serif'
+      }}
+    >
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      {/* Blackwood Analytics Logo */}
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="flex flex-col items-center">
+          {/* Logo Image */}
+          <img
+            src="/Blackwood_Analytics_Logo.png"
+            alt="Blackwood Analytics"
+            className="h-48 w-auto object-contain mb-4"
+          />
         </div>
+      </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Field */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                formErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="admin@audit-suite.gov.uk"
-              disabled={loading}
-            />
-            {formErrors.email && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-            )}
+      {/* Login Tile */}
+      <div className="relative z-10 w-full max-w-lg">
+        {/* Frosted Glass Container */}
+        <div 
+          className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl p-12"
+          style={{ 
+            border: '6px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px'
+          }}
+        >
+          {/* Main Heading */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl text-white mb-6 italic font-light">
+              Clarity. Strategy. Results.
+            </h1>
+            <p className="text-lg text-white/90 leading-relaxed">
+              Access our secure client portal to view strategic insights, 
+              financial analysis, and bespoke research tailored to your organisation.
+            </p>
           </div>
 
-          {/* Password Field */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 backdrop-blur-sm border border-red-300/30 rounded-lg flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-red-300 flex-shrink-0" />
+              <p className="text-red-200 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
+                Email Address
+              </label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                value={formData.password}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
-                  formErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border text-white placeholder-white/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 ${
+                  formErrors.email ? 'border-red-300/50 bg-red-500/10' : 'border-white/20'
                 }`}
-                placeholder="Enter your password"
+                style={{ border: '2px solid rgba(255, 255, 255, 0.2)' }}
+                placeholder="your@email.com"
                 disabled={loading}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                disabled={loading}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
+              {formErrors.email && (
+                <p className="mt-2 text-sm text-red-300">{formErrors.email}</p>
+              )}
             </div>
-            {formErrors.password && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
-            )}
-          </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Signing in...
-              </>
-            ) : (
-              <>
-                <LogIn className="h-4 w-4" />
-                Sign In
-              </>
-            )}
-          </button>
-        </form>
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border text-white placeholder-white/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 pr-12 ${
+                    formErrors.password ? 'border-red-300/50 bg-red-500/10' : 'border-white/20'
+                  }`}
+                  style={{ border: '2px solid rgba(255, 255, 255, 0.2)' }}
+                  placeholder="Enter your password"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-white/60 hover:text-white"
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {formErrors.password && (
+                <p className="mt-2 text-sm text-red-300">{formErrors.password}</p>
+              )}
+            </div>
 
-        {/* Demo Credentials */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
-          <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Email:</strong> admin@audit-suite.gov.uk</p>
-            <p><strong>Password:</strong> AuditAdmin123!</p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            AuditSuite - Secure Audit Platform for UK Local Government
-          </p>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 disabled:bg-white/10 text-white font-medium py-4 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 border border-white/30"
+              style={{ border: '2px solid rgba(255, 255, 255, 0.3)' }}
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Accessing Portal...
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-5 w-5" />
+                  Access Portal
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>

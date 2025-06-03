@@ -43,6 +43,7 @@ const UserManagement: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; user: User | null }>({ show: false, user: null });
 
   const fetchUsers = async () => {
     try {
@@ -130,6 +131,39 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleDeleteUser = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setDeleteConfirm({ show: true, user });
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteConfirm.user) return;
+
+    try {
+      const response = await fetch(`/api/auth/users/${deleteConfirm.user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        await fetchUsers();
+        await fetchStats();
+        setDeleteConfirm({ show: false, user: null });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
+      setDeleteConfirm({ show: false, user: null });
+    }
+  };
+
   // Filter users based on search and filters
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
@@ -176,25 +210,10 @@ const UserManagement: React.FC = () => {
   const uniqueRoles = Array.from(new Set(users.map(user => user.role)));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
-        </div>
-        <button
-          onClick={handleCreateUser}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Add User
-        </button>
-      </div>
-
+    <div className="space-y-6" style={{ fontFamily: 'Times New Roman, serif' }}>
       {/* Error Alert */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-red-500/20 border border-red-300/30 text-red-200 px-4 py-3 rounded-lg backdrop-blur-sm">
           {error}
         </div>
       )}
@@ -203,35 +222,35 @@ const UserManagement: React.FC = () => {
       {stats && <UserStats stats={stats} />}
 
       {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-lg border space-y-4">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/20 p-4 rounded-lg space-y-4">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Search */}
           <div className="flex-1 min-w-64">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
               <input
                 type="text"
                 placeholder="Search users by name, email, or department..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white placeholder-white/50"
               />
             </div>
           </div>
 
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
+            <Filter className="h-4 w-4 text-white/60" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending_approval">Pending</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
+              <option value="all" className="bg-[#35373A] text-white">All Status</option>
+              <option value="active" className="bg-[#35373A] text-white">Active</option>
+              <option value="pending_approval" className="bg-[#35373A] text-white">Pending</option>
+              <option value="suspended" className="bg-[#35373A] text-white">Suspended</option>
+              <option value="inactive" className="bg-[#35373A] text-white">Inactive</option>
             </select>
           </div>
 
@@ -240,11 +259,11 @@ const UserManagement: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-white"
             >
-              <option value="all">All Roles</option>
+              <option value="all" className="bg-[#35373A] text-white">All Roles</option>
               {uniqueRoles.map(role => (
-                <option key={role} value={role}>
+                <option key={role} value={role} className="bg-[#35373A] text-white">
                   {role.split('_').map(word => 
                     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                   ).join(' ')}
@@ -252,10 +271,19 @@ const UserManagement: React.FC = () => {
               ))}
             </select>
           </div>
+
+          {/* Add User Button */}
+          <button
+            onClick={handleCreateUser}
+            className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors border border-white/30"
+          >
+            <Plus className="h-4 w-4" />
+            Add User
+          </button>
         </div>
 
         {/* Results Count */}
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-white/70">
           Showing {filteredUsers.length} of {users.length} users
         </div>
       </div>
@@ -266,6 +294,7 @@ const UserManagement: React.FC = () => {
         currentUserId={currentUser?.id}
         onEditUser={handleEditUser}
         onStatusUpdate={handleStatusUpdate}
+        onDeleteUser={handleDeleteUser}
       />
 
       {/* User Modal */}
@@ -275,6 +304,55 @@ const UserManagement: React.FC = () => {
           onClose={() => setShowUserModal(false)}
           onUserUpdated={handleUserUpdated}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-lg max-w-md mx-4" style={{ fontFamily: 'Times New Roman, serif' }}>
+            <h2 className="text-xl font-light text-white mb-4">Confirm User Deletion</h2>
+            <p className="text-white/80 mb-2">
+              Are you sure you want to delete the following user?
+            </p>
+            {deleteConfirm.user && (
+              <div className="bg-white/10 p-4 rounded-lg mb-6 border border-white/20">
+                <p className="text-white font-medium">
+                  {deleteConfirm.user.firstName} {deleteConfirm.user.lastName}
+                </p>
+                <p className="text-white/70 text-sm">{deleteConfirm.user.email}</p>
+                <p className="text-white/70 text-sm">
+                  Role: {deleteConfirm.user.role.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  ).join(' ')}
+                </p>
+              </div>
+            )}
+            <p className="text-red-300 text-sm mb-6">
+              <strong>⚠️ PERMANENT DELETION - GDPR COMPLIANT</strong><br />
+              This action cannot be undone. The user and ALL associated data will be permanently removed from the system, including:
+              <br />• User profile and account information
+              <br />• All documents uploaded by this user
+              <br />• All audit log entries for this user
+              <br />• Any other personal data associated with this account
+              <br /><br />
+              This deletion complies with GDPR Article 17 (Right to Erasure).
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={confirmDeleteUser}
+                className="flex-1 bg-red-500/20 text-red-200 border border-red-300/30 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors backdrop-blur-sm"
+              >
+                Delete User
+              </button>
+              <button
+                onClick={() => setDeleteConfirm({ show: false, user: null })}
+                className="flex-1 bg-white/10 text-white border border-white/30 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

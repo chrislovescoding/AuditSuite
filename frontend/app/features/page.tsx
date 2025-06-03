@@ -2,174 +2,134 @@
 
 import Link from 'next/link'
 import { 
-  Shield, 
   ArrowLeft, 
-  Brain, 
-  FileText, 
-  MessageSquare, 
   TrendingUp, 
-  Lock, 
   Users, 
-  Clock, 
-  CheckCircle,
-  Search,
-  Download,
   BarChart3,
-  AlertTriangle,
-  Database,
-  Cloud
+  Target,
+  Lightbulb,
+  Shield,
+  CheckCircle,
+  Mail,
+  Phone,
+  MapPin
 } from 'lucide-react'
 
-export default function Features() {
-  const features = [
+export default function Services() {
+  const services = [
     {
-      category: "AI-Powered Analysis",
+      category: "Strategic Advisory",
+      description: "Expert guidance for complex strategic decisions and organizational transformation",
       items: [
         {
-          icon: Brain,
-          title: "Intelligent Document Processing",
-          description: "Advanced AI algorithms automatically extract and categorize key information from PDFs, including committee minutes, financial reports, and contracts.",
+          icon: Target,
+          title: "Strategic Planning & Vision",
+          description: "Comprehensive strategic planning services to define your organization's direction and priorities.",
           benefits: [
-            "Automatic text extraction and OCR",
-            "Smart categorization by document type",
-            "Metadata extraction and indexing",
-            "Multi-language support"
-          ]
-        },
-        {
-          icon: MessageSquare,
-          title: "Natural Language Queries",
-          description: "Ask questions about your documents in plain English and get precise, contextual answers instantly.",
-          benefits: [
-            "Conversational AI interface",
-            "Context-aware responses",
-            "Citation and source tracking",
-            "Multi-document analysis"
+            "Long-term strategic roadmaps",
+            "Vision and mission development",
+            "Stakeholder alignment strategies",
+            "Performance measurement frameworks"
           ]
         },
         {
           icon: TrendingUp,
-          title: "Anomaly Detection",
-          description: "Automatically identify unusual patterns, discrepancies, and potential areas of concern across your document corpus.",
+          title: "Business Case Development",
+          description: "Robust business cases that provide clear justification for investment decisions and strategic initiatives.",
           benefits: [
-            "Financial irregularity detection",
-            "Pattern recognition across documents",
-            "Risk scoring and prioritization",
-            "Automated alert generation"
-          ]
-        }
-      ]
-    },
-    {
-      category: "Document Management",
-      items: [
-        {
-          icon: FileText,
-          title: "Secure Document Storage",
-          description: "Enterprise-grade storage with advanced security features designed for sensitive government documents.",
-          benefits: [
-            "End-to-end encryption",
-            "Version control and history",
-            "Automated backups",
-            "GDPR compliant storage"
-          ]
-        },
-        {
-          icon: Search,
-          title: "Advanced Search",
-          description: "Powerful search capabilities that go beyond keywords to understand context and meaning.",
-          benefits: [
-            "Semantic search technology",
-            "Filter by date, type, and content",
-            "Saved search queries",
-            "Bulk operations"
-          ]
-        },
-        {
-          icon: Download,
-          title: "Export & Reporting",
-          description: "Generate comprehensive reports and export data in multiple formats for external use.",
-          benefits: [
-            "Multiple export formats (PDF, Excel, CSV)",
-            "Custom report templates",
-            "Automated report generation",
-            "Executive summary creation"
-          ]
-        }
-      ]
-    },
-    {
-      category: "Security & Compliance",
-      items: [
-        {
-          icon: Lock,
-          title: "Enterprise Security",
-          description: "Military-grade security measures to protect sensitive government data and ensure compliance.",
-          benefits: [
-            "256-bit AES encryption",
-            "Multi-factor authentication",
-            "IP restriction controls",
-            "Regular security audits"
-          ]
-        },
-        {
-          icon: Shield,
-          title: "Compliance Management",
-          description: "Built-in compliance features for UK government standards and data protection regulations.",
-          benefits: [
-            "GDPR compliance tools",
-            "Audit trail generation",
-            "Data retention policies",
-            "Regulatory reporting"
+            "Financial modeling and analysis",
+            "Risk assessment and mitigation",
+            "Options appraisal",
+            "Investment decision support"
           ]
         },
         {
           icon: Users,
-          title: "Access Control",
-          description: "Granular permission system to ensure only authorized personnel can access sensitive information.",
+          title: "Organizational Development",
+          description: "Strategic advice on organizational structure, capability building, and change management.",
           benefits: [
-            "Role-based permissions",
-            "Department-level access",
-            "Activity monitoring",
-            "User session management"
+            "Organizational design",
+            "Capability assessments",
+            "Change management strategies",
+            "Leadership development planning"
           ]
         }
       ]
     },
     {
-      category: "Analytics & Insights",
+      category: "Financial Analysis",
+      description: "In-depth financial analysis and modeling to support critical decision-making",
       items: [
         {
           icon: BarChart3,
-          title: "Performance Analytics",
-          description: "Comprehensive analytics dashboard to track audit progress and identify trends.",
+          title: "Financial Performance Analysis",
+          description: "Comprehensive analysis of financial performance, trends, and benchmarking against peers.",
           benefits: [
-            "Real-time dashboard updates",
-            "Custom metric tracking",
-            "Performance benchmarking",
-            "Historical trend analysis"
+            "Performance trend analysis",
+            "Peer comparison studies",
+            "Efficiency and productivity metrics",
+            "Cost-benefit analysis"
           ]
         },
         {
-          icon: AlertTriangle,
-          title: "Risk Assessment",
-          description: "Automated risk scoring and assessment tools to prioritize audit efforts.",
+          icon: Shield,
+          title: "Risk & Compliance Assessment",
+          description: "Detailed risk analysis and compliance reviews to ensure regulatory adherence and risk mitigation.",
           benefits: [
-            "AI-powered risk scoring",
-            "Customizable risk parameters",
-            "Risk trend monitoring",
-            "Automated escalation rules"
+            "Risk register development",
+            "Compliance gap analysis",
+            "Control framework assessment",
+            "Regulatory impact analysis"
           ]
         },
         {
-          icon: Clock,
-          title: "Time Tracking",
-          description: "Built-in time tracking and productivity monitoring to optimize audit processes.",
+          icon: Lightbulb,
+          title: "Investment Appraisal",
+          description: "Rigorous evaluation of investment opportunities and capital allocation decisions.",
           benefits: [
-            "Automatic time logging",
-            "Project milestone tracking",
-            "Resource allocation insights",
-            "Efficiency reporting"
+            "NPV and IRR analysis",
+            "Sensitivity and scenario modeling",
+            "Investment optimization",
+            "Portfolio analysis"
+          ]
+        }
+      ]
+    },
+    {
+      category: "Research & Insights",
+      description: "Bespoke research and analysis tailored to your specific needs and challenges",
+      items: [
+        {
+          icon: Users,
+          title: "Stakeholder Needs Analysis",
+          description: "Comprehensive mapping and analysis of stakeholder requirements and expectations.",
+          benefits: [
+            "Stakeholder mapping and segmentation",
+            "Needs assessment surveys",
+            "Expectation management strategies",
+            "Communication planning"
+          ]
+        },
+        {
+          icon: TrendingUp,
+          title: "Peer Landscape & Benchmarking",
+          description: "Detailed analysis of peer organizations and industry benchmarking studies.",
+          benefits: [
+            "Comparative performance analysis",
+            "Best practice identification",
+            "Market positioning studies",
+            "Competitive intelligence"
+          ]
+        },
+        {
+          icon: BarChart3,
+          title: "Market Research & Analysis",
+          description: "In-depth market research to inform strategic decisions and opportunity identification.",
+          benefits: [
+            "Market sizing and segmentation",
+            "Trend analysis and forecasting",
+            "Customer insight research",
+            "Opportunity assessment"
           ]
         }
       ]
@@ -177,18 +137,37 @@ export default function Features() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#EDE5D4]">
       {/* Navigation */}
-      <nav className="fixed w-full top-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
+      <nav className="fixed w-full top-0 bg-white/10 backdrop-blur-md border-b border-white/20 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">AuditSuite</span>
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-[#173559] rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-white rounded-full opacity-80"></div>
+              </div>
+              <span className="text-xl font-bold text-[#173559] tracking-wide">BLACKWOOD<br />ANALYTICS</span>
             </Link>
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="/" className="text-[#173559] hover:text-[#494B4F] text-sm font-medium transition-colors">
+                Home
+              </Link>
+              <Link href="/features" className="text-[#173559] hover:text-[#494B4F] text-sm font-medium transition-colors border-b-2 border-[#173559]">
+                Services
+              </Link>
+              <Link href="/about" className="text-[#173559] hover:text-[#494B4F] text-sm font-medium transition-colors">
+                Case Studies
+              </Link>
+              <Link href="/about" className="text-[#173559] hover:text-[#494B4F] text-sm font-medium transition-colors">
+                About
+              </Link>
+              <Link href="/contact" className="text-[#173559] hover:text-[#494B4F] text-sm font-medium transition-colors">
+                Contact
+              </Link>
+            </div>
             <Link
               href="/"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-[#173559] hover:text-[#494B4F] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Home
@@ -199,148 +178,259 @@ export default function Features() {
 
       <div className="pt-16">
         {/* Hero Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Powerful Features for Modern Auditing
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              Discover how AuditSuite's comprehensive feature set transforms traditional 
-              audit processes into efficient, AI-powered workflows.
-            </p>
+        <section className="relative py-32 bg-cover bg-center" 
+                 style={{
+                   backgroundImage: `linear-gradient(rgba(23, 53, 89, 0.8), rgba(23, 53, 89, 0.8)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%23494B4F" width="1200" height="800"/></svg>')`
+                 }}>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `
+                linear-gradient(30deg, transparent 30%, rgba(255,255,255,0.05) 31%, rgba(255,255,255,0.05) 32%, transparent 33%),
+                linear-gradient(-30deg, transparent 30%, rgba(255,255,255,0.05) 31%, rgba(255,255,255,0.05) 32%, transparent 33%)
+              `,
+              backgroundSize: '15px 15px'
+            }}></div>
+          </div>
+
+          <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
+            <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-lg p-8">
+              <h1 className="text-4xl md:text-6xl font-light text-white mb-6 leading-tight">
+                Our <span className="font-bold">Services</span>
+              </h1>
+              <p className="text-xl text-white/90 font-light leading-relaxed">
+                Comprehensive strategic advisory services designed to help public sector 
+                organizations navigate complex challenges and achieve their objectives.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Features by Category */}
-        {features.map((category, categoryIndex) => (
-          <section key={category.category} className={`py-16 ${categoryIndex % 2 === 1 ? 'bg-gray-50' : ''}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">{category.category}</h2>
+        {/* Services Overview */}
+        <section className="py-20 bg-[#EDE5D4]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-light text-[#173559] mb-6 italic">
+                Clarity. Strategy. Results.
+              </h2>
+              <p className="text-xl text-[#494B4F] max-w-3xl mx-auto leading-relaxed">
+                We combine deep analytical expertise with practical understanding of public sector 
+                decision-making to deliver insights that drive meaningful change.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white rounded-lg p-8 shadow-lg">
+                <div className="w-16 h-16 bg-[#173559] rounded-lg flex items-center justify-center mb-6">
+                  <Target className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-semibold text-[#173559] mb-4">Strategic Advisory</h3>
+                <p className="text-[#494B4F] leading-relaxed">
+                  Expert guidance on strategic planning, business case development, and 
+                  organizational transformation to help you achieve your long-term objectives.
+                </p>
               </div>
 
-              <div className="space-y-16">
-                {category.items.map((feature, index) => {
-                  const IconComponent = feature.icon
-                  return (
-                    <div key={index} className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
-                      <div className={`${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                            <IconComponent className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
-                        </div>
-                        <p className="text-lg text-gray-600 mb-6">
-                          {feature.description}
-                        </p>
-                        <ul className="space-y-3">
-                          {feature.benefits.map((benefit, benefitIndex) => (
-                            <li key={benefitIndex} className="flex items-center gap-3">
-                              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                              <span className="text-gray-700">{benefit}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                        <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm opacity-75">Feature Highlight</span>
-                              <IconComponent className="h-8 w-8" />
-                            </div>
-                            <h4 className="text-xl font-semibold">{feature.title}</h4>
-                            <div className="space-y-2 text-sm opacity-90">
-                              <div>• Saves 60-80% of manual review time</div>
-                              <div>• 99.5% accuracy in pattern detection</div>
-                              <div>• Seamlessly integrates with existing workflows</div>
-                              <div>• 24/7 automated monitoring and alerts</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+              <div className="bg-white rounded-lg p-8 shadow-lg">
+                <div className="w-16 h-16 bg-[#173559] rounded-lg flex items-center justify-center mb-6">
+                  <BarChart3 className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-semibold text-[#173559] mb-4">Financial Analysis</h3>
+                <p className="text-[#494B4F] leading-relaxed">
+                  Comprehensive financial modeling, performance analysis, and investment appraisal 
+                  to support critical decision-making and resource allocation.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg p-8 shadow-lg">
+                <div className="w-16 h-16 bg-[#173559] rounded-lg flex items-center justify-center mb-6">
+                  <Lightbulb className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-semibold text-[#173559] mb-4">Research & Insights</h3>
+                <p className="text-[#494B4F] leading-relaxed">
+                  Bespoke research and analysis including stakeholder needs assessment, 
+                  peer benchmarking, and market intelligence to inform strategic decisions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Detailed Services */}
+        {services.map((serviceCategory, categoryIndex) => (
+          <section key={categoryIndex} className={categoryIndex % 2 === 0 ? "py-20 bg-[#173559]" : "py-20 bg-[#EDE5D4]"}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className={`text-4xl font-light mb-6 italic ${categoryIndex % 2 === 0 ? 'text-white' : 'text-[#173559]'}`}>
+                  {serviceCategory.category}
+                </h2>
+                <p className={`text-xl max-w-3xl mx-auto leading-relaxed ${categoryIndex % 2 === 0 ? 'text-white/80' : 'text-[#494B4F]'}`}>
+                  {serviceCategory.description}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {serviceCategory.items.map((service, serviceIndex) => (
+                  <div key={serviceIndex} className={`rounded-lg p-8 shadow-lg ${categoryIndex % 2 === 0 ? 'bg-white/10 backdrop-blur-sm' : 'bg-white'}`}>
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${categoryIndex % 2 === 0 ? 'bg-white/20' : 'bg-[#173559]'}`}>
+                      <service.icon className={`h-6 w-6 ${categoryIndex % 2 === 0 ? 'text-white' : 'text-white'}`} />
                     </div>
-                  )
-                })}
+                    <h3 className={`text-xl font-semibold mb-4 ${categoryIndex % 2 === 0 ? 'text-white' : 'text-[#173559]'}`}>
+                      {service.title}
+                    </h3>
+                    <p className={`mb-6 leading-relaxed ${categoryIndex % 2 === 0 ? 'text-white/80' : 'text-[#494B4F]'}`}>
+                      {service.description}
+                    </p>
+                    <ul className="space-y-2">
+                      {service.benefits.map((benefit, benefitIndex) => (
+                        <li key={benefitIndex} className={`flex items-start gap-2 text-sm ${categoryIndex % 2 === 0 ? 'text-white/70' : 'text-[#494B4F]'}`}>
+                          <CheckCircle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${categoryIndex % 2 === 0 ? 'text-white/60' : 'text-[#173559]'}`} />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
         ))}
 
-        {/* Technical Specifications */}
-        <section className="py-16 bg-gray-900 text-white">
+        {/* Process Section */}
+        <section className="py-20 bg-[#EDE5D4]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Technical Specifications</h2>
-              <p className="text-xl text-gray-300">
-                Built on cutting-edge technology for maximum performance and reliability
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-light text-[#173559] mb-6 italic">
+                Our Approach
+              </h2>
+              <p className="text-xl text-[#494B4F] max-w-3xl mx-auto leading-relaxed">
+                Every engagement is bespoke, designed to meet your specific needs and deliver 
+                meaningful, actionable results.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="text-center">
-                <Database className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-3">Data Processing</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>Process up to 10,000 documents/hour</li>
-                  <li>Support for 50+ file formats</li>
-                  <li>Real-time indexing and search</li>
-                  <li>Distributed processing architecture</li>
-                </ul>
+                <div className="bg-[#173559] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-xl font-bold">1</span>
+                </div>
+                <h3 className="text-xl font-semibold text-[#173559] mb-3">Discovery</h3>
+                <p className="text-[#494B4F]">
+                  We begin by understanding your unique challenges, objectives, and constraints.
+                </p>
               </div>
 
               <div className="text-center">
-                <Cloud className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-3">Infrastructure</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>99.9% uptime SLA</li>
-                  <li>Auto-scaling cloud deployment</li>
-                  <li>Global CDN for fast access</li>
-                  <li>Regular automated backups</li>
-                </ul>
+                <div className="bg-[#173559] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-xl font-bold">2</span>
+                </div>
+                <h3 className="text-xl font-semibold text-[#173559] mb-3">Analysis</h3>
+                <p className="text-[#494B4F]">
+                  Deep analytical work combining quantitative analysis with strategic insight.
+                </p>
               </div>
 
               <div className="text-center">
-                <Shield className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-3">Security</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>SOC 2 Type II certified</li>
-                  <li>ISO 27001 compliant</li>
-                  <li>End-to-end encryption</li>
-                  <li>Regular penetration testing</li>
-                </ul>
+                <div className="bg-[#173559] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-xl font-bold">3</span>
+                </div>
+                <h3 className="text-xl font-semibold text-[#173559] mb-3">Insights</h3>
+                <p className="text-[#494B4F]">
+                  Clear, actionable recommendations based on rigorous analysis and evidence.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <div className="bg-[#173559] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-xl font-bold">4</span>
+                </div>
+                <h3 className="text-xl font-semibold text-[#173559] mb-3">Implementation</h3>
+                <p className="text-[#494B4F]">
+                  Ongoing support to help you implement recommendations and achieve results.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16">
+        <section className="py-20 bg-[#173559]">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">
-              Experience These Features Today
-            </h2>
-            <p className="text-xl text-gray-600 mb-8">
-              See how AuditSuite can transform your audit process with a personalized demo.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/"
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors inline-flex items-center justify-center gap-2"
-              >
-                Start Free Trial
-              </Link>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
+              <h2 className="text-4xl font-light text-white mb-6 italic">
+                Ready to get started?
+              </h2>
+              <p className="text-xl text-white/80 mb-8 leading-relaxed">
+                Let's discuss how our strategic advisory services can help your organization 
+                achieve its objectives and navigate complex challenges.
+              </p>
               <Link
                 href="/contact"
-                className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2"
+                className="bg-white/20 backdrop-blur-sm border border-white/40 text-white px-8 py-4 rounded-md font-medium hover:bg-white/30 transition-all duration-300 inline-flex items-center gap-2"
               >
-                Contact Sales
+                Contact Us Today
               </Link>
             </div>
           </div>
         </section>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-[#EDE5D4] py-12 border-t border-[#173559]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Logo and Company Info */}
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-[#173559] rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-full opacity-80"></div>
+                </div>
+                <span className="text-lg font-bold text-[#173559] tracking-wide">BLACKWOOD<br />ANALYTICS</span>
+              </div>
+              <p className="text-[#494B4F] text-sm mb-4">
+                Strategic insights, financial clarity, and bespoke research 
+                to help UK government bodies make better decisions.
+              </p>
+            </div>
+
+            {/* Hours */}
+            <div>
+              <h3 className="text-[#173559] font-semibold mb-4">Hours</h3>
+              <div className="text-[#494B4F] text-sm space-y-1">
+                <p>Monday – Friday</p>
+                <p>9am – 6pm</p>
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h3 className="text-[#173559] font-semibold mb-4">Contact</h3>
+              <div className="text-[#494B4F] text-sm space-y-2">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>info@blackwoodanalytics.com</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  <span>01344 622896</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-1" />
+                  <div>
+                    <p>25 Matthews Court</p>
+                    <p>Ascot, Berkshire SL5 7RE</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-[#173559]/20 mt-8 pt-8 text-center">
+            <p className="text-[#494B4F] text-sm">
+              &copy; 2024 Blackwood Analytics. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 } 
